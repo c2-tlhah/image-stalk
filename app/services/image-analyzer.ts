@@ -72,15 +72,28 @@ export async function analyzeImageFromUpload(
     else if (header.startsWith('47494638')) mime = 'image/gif';
     else if (header.startsWith('52494646')) mime = 'image/webp';
     
+    // For preview, we only take the FIRST 2MB of data to avoid huge strings
+    // This might result in a truncated preview for some formats, but saves DB space
+    // Better approach: skip preview for large files
+    const maxPreviewBytes = 2 * 1024 * 1024; // 2MB limit for preview
+    const previewBuffer = bytes.length > maxPreviewBytes ? bytes.slice(0, maxPreviewBytes) : bytes;
+    
     // Convert to base64 in chunks to avoid string length issues
     const chunkSize = 8192;
     let base64 = '';
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      const chunk = bytes.slice(i, Math.min(i + chunkSize, bytes.length));
+    for (let i = 0; i < previewBuffer.length; i += chunkSize) {
+      const chunk = previewBuffer.slice(i, Math.min(i + chunkSize, previewBuffer.length));
       base64 += btoa(String.fromCharCode(...chunk));
     }
     
-    previewDataUrl = `data:${mime};base64,${base64}`;
+    // Only set preview if file is small enough to render correctly, or if we accept truncation
+    // For very large files, just don't set preview_data_url to avoid SQLITE_TOOBIG
+    if (bytes.length > maxPreviewBytes) {
+      // If file is too big, don't set preview URL to avoid DB issues
+      previewDataUrl = null; 
+    } else {
+      previewDataUrl = `data:${mime};base64,${base64}`;
+    }
   } catch (error) {
     console.error('Failed to create preview:', error);
     // Continue without preview
