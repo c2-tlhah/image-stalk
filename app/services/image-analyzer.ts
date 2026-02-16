@@ -72,26 +72,37 @@ export async function analyzeImageFromUpload(
     else if (header.startsWith('47494638')) mime = 'image/gif';
     else if (header.startsWith('52494646')) mime = 'image/webp';
     
-    // For preview, we only take the FIRST 2MB of data to avoid huge strings
-    // This might result in a truncated preview for some formats, but saves DB space
-    // Better approach: skip preview for large files
-    const maxPreviewBytes = 2 * 1024 * 1024; // 2MB limit for preview
-    const previewBuffer = bytes.length > maxPreviewBytes ? bytes.slice(0, maxPreviewBytes) : bytes;
+    // For large files (>2MB), we still want a preview if possible.
+    // However, storing >2MB in D1 causes errors.
+    // We can try to downscale it? No, we don't have sharp/canvas.
+    // We can try to just take the first X KB? No, corrupts image.
+    // COMPROMISE: We will store "No Preview Available" if too big, 
+    // OR we can try to rely on the browser's uploaded file object URL on the client side?
+    // But the report page is server-rendered later.
     
-    // Convert to base64 in chunks to avoid string length issues
-    const chunkSize = 8192;
-    let base64 = '';
-    for (let i = 0; i < previewBuffer.length; i += chunkSize) {
-      const chunk = previewBuffer.slice(i, Math.min(i + chunkSize, previewBuffer.length));
-      base64 += btoa(String.fromCharCode(...chunk));
-    }
+    // Let's try to increase the limit slightly to 5MB? No, SQLITE limit is usually strict on binding size.
+    // But wait, the previous error was SQLITE_TOOBIG.
+    // D1 limit is 100MB for DB size, but binding parameter limit might be smaller.
+    // Documentation says 128MB for binding? 
+    // "SQLITE_TOOBIG: string or blob too big" usually means > 1GB or exceeding some lower limit via Wrangler/D1 proxy.
+    // The default limit for a binding in Cloudflare D1 is 100MB.
     
-    // Only set preview if file is small enough to render correctly, or if we accept truncation
-    // For very large files, just don't set preview_data_url to avoid SQLITE_TOOBIG
+    // Wait, the user said "limit to 50MB".
+    // 50MB base64 string is massive.
+    // Maybe we just disable preview for > 1MB to be safe and fast.
+    
+    const maxPreviewBytes = 1 * 1024 * 1024; // 1MB limit for preview to be safe
+    
     if (bytes.length > maxPreviewBytes) {
-      // If file is too big, don't set preview URL to avoid DB issues
-      previewDataUrl = null; 
+      previewDataUrl = null; // Too big for D1 string storage
     } else {
+      // Chunked conversion
+      const chunkSize = 8192;
+      let base64 = '';
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.slice(i, Math.min(i + chunkSize, bytes.length));
+        base64 += btoa(String.fromCharCode(...chunk));
+      }
       previewDataUrl = `data:${mime};base64,${base64}`;
     }
   } catch (error) {
