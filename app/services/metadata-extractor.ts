@@ -233,9 +233,23 @@ export async function extractMetadata(buffer: ArrayBuffer): Promise<ImageMetadat
     gps = tags.gps || tags.GPS || {};
     
     // Merge GPS data into exif for unified display
-    // GPS data is shown in EXIF section on most tools
     if (gps && Object.keys(gps).length > 0) {
       exif = { ...exif, ...gps };
+    }
+    
+    // Check for latitude/longitude in XMP or IPTC if missing in EXIF
+    if (!exif.GPSLatitude && !exif.GPSLongitude) {
+      if (xmp && (xmp.GPSLatitude || xmp.GPSLongitude)) {
+        exif.GPSLatitude = xmp.GPSLatitude;
+        exif.GPSLongitude = xmp.GPSLongitude;
+        if (xmp.GPSAltitude) exif.GPSAltitude = xmp.GPSAltitude;
+      }
+      // Also check standard XMP exif namespace (often exif:GPSLatitude)
+      if (xmp && (xmp['exif:GPSLatitude'] || xmp['exif:GPSLongitude'])) {
+         exif.GPSLatitude = xmp['exif:GPSLatitude'];
+         exif.GPSLongitude = xmp['exif:GPSLongitude'];
+         if (xmp['exif:GPSAltitude']) exif.GPSAltitude = xmp['exif:GPSAltitude'];
+      }
     }
     
     // Also check for tags directly on the root object (some formats)
@@ -397,6 +411,9 @@ function formatGPSValue(key: string, value: any): string {
     // Explicitly handle "NaN" string
     const strVal = String(rawValue).toLowerCase();
     if (strVal === 'nan' || strVal === 'null' || strVal === 'undefined') return 'N/A';
+
+    // Handle "0, 0" or "0, 0, 0" string patterns (common in mobile uploads)
+    if (/^0(,\s*0)*$/.test(String(rawValue))) return 'N/A';
 
     // Handle array format (e.g. [deg, min, sec] or version bytes)
     if (Array.isArray(rawValue)) {
