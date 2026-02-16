@@ -372,14 +372,19 @@ function formatGPSValue(key: string, value: any): string {
     
     // Unwrap object structure first
     if (value && typeof value === 'object') {
-      // Prioritize description if it looks valid (e.g., "37 deg 46' 29.64\" N")
+      // Prioritize description if it looks valid
       if ('description' in value) {
         const desc = String(value.description);
+        // Check for invalid description values
+        const invalidValues = ['nan', 'nu', 'undefined', 'null', 'unknown'];
         if (desc && 
-            desc.toLowerCase() !== 'nan' && 
-            desc.toLowerCase() !== 'nu' && // ExifReader sometimes returns 'nu' for null
+            !invalidValues.includes(desc.toLowerCase()) &&
             !desc.includes('NaN') && 
             desc.trim().length > 0) {
+          
+          // Check for "0 deg 0' 0.00" pattern in description
+          if (/^0\s*deg\s*0'\s*0(\.0+)?/.test(desc)) return 'N/A';
+          
           return desc;
         }
       }
@@ -389,109 +394,55 @@ function formatGPSValue(key: string, value: any): string {
       }
     }
     
-    // Explicitly handle "NaN" string which mobile browsers might produce
-    if (String(rawValue).toLowerCase() === 'nan') return 'N/A';
+    // Explicitly handle "NaN" string
+    const strVal = String(rawValue).toLowerCase();
+    if (strVal === 'nan' || strVal === 'null' || strVal === 'undefined') return 'N/A';
 
-    // Handle coordinate arrays [degrees, minutes, seconds]
+    // Handle array format (e.g. [deg, min, sec] or version bytes)
     if (Array.isArray(rawValue)) {
-      // Recursive flatten for nested arrays (some cleanups do this)
+      // Recursive flatten
       const flat = rawValue.flat(Infinity);
       
-      // Filter invalid numbers
-      const validNumbers = flat.map(v => parseFloat(String(v))).filter(n => !isNaN(n));
+      // Filter strictly invalid numbers (NaN)
+      const numbers = flat.map(v => parseFloat(String(v)));
       
-      if (validNumbers.length === 0) return 'N/A';
+      // Check if ALL checkable values are zero
+      // Calculate sum of absolute values to detect [0, 0, 0]
+      const sum = numbers.reduce((acc, curr) => acc + (isNaN(curr) ? 0 : Math.abs(curr)), 0);
       
-      // If it looks like DMS (Degrees Minutes Seconds)
-      if (validNumbers.length >= 3 && (key.includes('Latitude') || key.includes('Longitude'))) {
-        const degrees = validNumbers[0];
-        const minutes = validNumbers[1];
-        const seconds = validNumbers[2];
+      // If sum is effectively zero, it's invalid GPS data
+      if (sum < 0.0001) return 'N/A';
+
+      // Special handling for Latitude/Longitude
+      if (flat.length >= 3 && (key.includes('Latitude') || key.includes('Longitude'))) {
+        const degrees = numbers[0];
+        const minutes = numbers[1];
+        const seconds = numbers[2];
         
-        // Calculate decimal degrees
-        const decimal = degrees + (minutes / 60) + (seconds / 3600);
-        
-        // Check if value is 0 (often default for missing GPS)
-        if (Math.abs(decimal) < 0.0001) return 'N/A';
+        if (isNaN(degrees) || isNaN(minutes) || isNaN(seconds)) return 'N/A';
         
         return `${degrees}° ${minutes}' ${seconds.toFixed(4)}"`;
       }
       
-      // Just join valid numbers
-      return validNumbers.join(', ');
-    }
-    
-    // Handle single number
+      // For TimeStamp, joining with colons looks better if length is 3
+      if (key.includes('TimeStamp') && flat.length === 3) {
+        return flat.join(':');
+      }
 
-    // Handle array format (degrees, minutes, seconds)
-    if (Array.isArray(rawValue)) {
-      // Check if all values are zero or invalid
-      const allZeroOrInvalid = rawValue.every(v => {
-        if (v === null || v === undefined) return true;
-        if (typeof v === 'number' && (isNaN(v) || v === 0)) return true;
-        if (String(v).toLowerCase() === 'nan' || String(v) === '0') return true;
-        return false;
-      });
-      
-      // If all zeros or invalid, return N/A
-      if (allZeroOrInvalid) {
-        return 'N/A';
-      }
-      
-      // GPS coordinates are usually [degrees, minutes, seconds]
-      if (rawValue.length === 3 && (key.includes('Latitude') || key.includes('Longitude'))) {
-        const [deg, min, sec] = rawValue.map(v => {
-          const num = parseFloat(String(v));
-          return isNaN(num) ? 0 : num;
-        });
-        
-        // Only convert if we have valid degrees
-        if (deg !== 0 || min !== 0 || sec !== 0) {
-          // Convert to decimal degrees
-          const decimal = deg + (min / 60) + (sec / 3600);
-          return decimal.toFixed(6) + '°';
-        }
-      }
-      
-      // For other GPS fields, filter and join valid values
-      const validValues = rawValue.filter(v => {
-        if (v === null || v === undefined) return false;
-        if (typeof v === 'number' && isNaN(v)) return false;
-        if (String(v).toLowerCase() === 'nan') return false;
-        return true;
-      });
-      
-      if (validValues.length > 0) {
-        return validValues.join(', ');
-      }
-      
-      return 'N/A';
+      // Default join
+      return flat.join(', ');
     }
     
     // Handle single numeric value
     if (typeof rawValue === 'number') {
-      if (isNaN(rawValue)) {
+      if (isNaN(rawValue) || Math.abs(rawValue) < 0.0001) {
         return 'N/A';
       }
-      // Allow 0 for single values (could be valid for altitude, etc.)
       return String(rawValue);
     }
     
-    // Handle string value
-    const strValue = String(rawValue);
-    if (strValue.toLowerCase() === 'nan' || strValue === 'null' || strValue === 'undefined') {
-      return 'N/A';
-    }
-    
-    // Check if it's "0, 0, 0" pattern
-    if (/^0(,\s*0)*$/.test(strValue)) {
-      return 'N/A';
-    }
-    
-    return strValue;
-
+    return String(rawValue);
   } catch (error) {
-    console.warn(`Failed to format GPS value for ${key}:`, error);
     return 'N/A';
   }
 }
