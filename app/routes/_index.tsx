@@ -308,6 +308,13 @@ export default function Index() {
             </form>
           ) : (
             <form onSubmit={handleFileSubmit} className="space-y-4">
+              {/* Mobile Warning */}
+              <div className="p-3 border border-yellow-500 bg-yellow-500/10">
+                <p className="text-yellow-400 font-mono text-xs">
+                  ⚠️ <strong>MOBILE USERS:</strong> iOS/Android may strip GPS location data from photos before upload as a privacy protection. For best results with GPS metadata, use a desktop browser or share the original file URL instead.
+                </p>
+              </div>
+              
               <div
                 className={`border-2 border-dashed rounded p-8 text-center transition-all ${
                   dragActive
