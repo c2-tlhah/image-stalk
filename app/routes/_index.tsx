@@ -70,18 +70,31 @@ export default function Index() {
       formData.append('last_modified', String(file.lastModified));
       
       // Extract EXIF data client-side BEFORE upload (critical for mobile)
+      let clientExifSuccess = false;
       try {
         const arrayBuffer = await file.arrayBuffer();
-        const ExifReader = await import('exifreader');
+        const ExifReaderModule = await import('exifreader');
+        const ExifReader = ExifReaderModule.default || ExifReaderModule;
         const tags = ExifReader.load(arrayBuffer, { expanded: true });
         
         // Send the raw EXIF tags to server
         if (tags && Object.keys(tags).length > 0) {
-          formData.append('client_exif', JSON.stringify(tags));
+          const exifJson = JSON.stringify(tags);
+          formData.append('client_exif', exifJson);
+          clientExifSuccess = true;
+          console.log('✅ Client-side EXIF extracted:', Object.keys(tags).length, 'tag groups');
+          
+          // Log GPS data if present
+          const gps = tags.gps || (tags as any).GPS;
+          if (gps) {
+            console.log('✅ GPS data found:', Object.keys(gps).length, 'GPS fields');
+          } else {
+            console.log('⚠️ No GPS data in EXIF');
+          }
         }
       } catch (exifError) {
-        console.warn('Client-side EXIF extraction failed:', exifError);
-        // Continue without client EXIF
+        console.error('❌ Client-side EXIF extraction failed:', exifError);
+        // Continue without client EXIF - will try server-side
       }
       
       // Generate client-side preview for the file if possible

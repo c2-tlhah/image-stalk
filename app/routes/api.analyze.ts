@@ -89,9 +89,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (clientExifStr) {
         try {
           clientExif = JSON.parse(clientExifStr);
+          console.log('✅ Received client EXIF data:', Object.keys(clientExif).length, 'tag groups');
+          
+          // Log GPS specifically
+          const gps = clientExif.gps || clientExif.GPS;
+          if (gps) {
+            console.log('✅ Client EXIF contains GPS data:', Object.keys(gps).length, 'fields');
+          }
         } catch {
-          console.warn('Failed to parse client EXIF data');
+          console.warn('❌ Failed to parse client EXIF data');
         }
+      } else {
+        console.log('⚠️ No client EXIF data received (may be stripped by browser)');
       }
       
       if (!file) {

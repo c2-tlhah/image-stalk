@@ -224,12 +224,20 @@ export async function extractMetadata(buffer: ArrayBuffer, clientExif?: any): Pr
   
   // If client provided EXIF (from mobile upload), use it as primary source
   if (clientExif && Object.keys(clientExif).length > 0) {
-    console.log('Using client-side EXIF data (mobile upload)');
+    console.log('✅ Using client-side EXIF data (mobile upload):', Object.keys(clientExif).length, 'groups');
     tags = clientExif;
     exif = clientExif.exif || clientExif.Exif || {};
     iptc = clientExif.iptc || clientExif.IPTC || {};
     xmp = clientExif.xmp || clientExif.XMP || {};
     gps = clientExif.gps || clientExif.GPS || {};
+    
+    if (Object.keys(gps).length > 0) {
+      console.log('✅ Client GPS data found:', Object.keys(gps).length, 'fields');
+    } else {
+      console.log('⚠️ No GPS data in client EXIF');
+    }
+  } else {
+    console.log('⚠️ No client EXIF provided, will use server extraction');
   }
   
   try {
@@ -243,6 +251,7 @@ export async function extractMetadata(buffer: ArrayBuffer, clientExif?: any): Pr
       iptc = serverTags.iptc || {};
       xmp = serverTags.xmp || {};
       gps = serverTags.gps || {};
+      console.log('📊 Server extraction:', Object.keys(exif).length, 'EXIF fields,', Object.keys(gps).length, 'GPS fields');
     } else {
       // Merge server tags with client tags (client takes priority)
       // This handles cases where mobile strips some fields but not all
