@@ -12,6 +12,6 @@ database_name = "profile-image-intel"
 database_id = "444bc68b-4b5f-4e9f-8c7e-4a7fd23e72e4"
 
 [vars]
-MAX_FILE_SIZE_MB = "15"
+MAX_FILE_SIZE_MB = "50"
 REQUEST_TIMEOUT_MS = "10000"
 RATE_LIMIT_PER_MINUTE = "10"
