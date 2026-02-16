@@ -307,9 +307,12 @@ function sanitizeMetadata(obj: any, redactedFields: string[]): Record<string, an
     //   continue;
     // }
     
-    // Special handling for GPS coordinates
-    if (key.startsWith('GPS')) {
-      result[key] = formatGPSValue(key, value);
+    // Direct handling for GPS keys - bypass generic logic entirely
+    if (key.includes('GPS')) {
+      const gpsVal = formatGPSValue(key, value);
+      if (gpsVal !== 'N/A') {
+        result[key] = gpsVal;
+      }
       continue;
     }
     
@@ -319,7 +322,7 @@ function sanitizeMetadata(obj: any, redactedFields: string[]): Record<string, an
         // Prefer description (human-readable format)
         const desc = value.description;
         // Check if description is valid
-        if (desc && desc !== 'NaN' && desc !== 'null' && desc !== 'undefined' && String(desc).toLowerCase() !== 'nan') {
+        if (desc && String(desc).toLowerCase() !== 'nan' && String(desc).toLowerCase() !== 'null' && String(desc) !== 'undefined') {
           result[key] = String(desc);
         } else if ('value' in value) {
           // Fallback to value if description is invalid
@@ -359,25 +362,80 @@ function sanitizeMetadata(obj: any, redactedFields: string[]): Record<string, an
 }
 
 /**
- * Special handler for GPS values
+ * Special handler for GPS values with robust extraction
  */
 function formatGPSValue(key: string, value: any): string {
   if (!value) return 'N/A';
-  
+
   try {
-    // First try to get description if available
-    if (value && typeof value === 'object' && 'description' in value) {
-      const desc = value.description;
-      if (desc && String(desc).toLowerCase() !== 'nan' && desc !== 'null' && desc !== 'undefined') {
-        return String(desc);
+    let rawValue = value;
+    
+    // Unwrap object structure first
+    if (value && typeof value === 'object') {
+      // Prioritize description if it looks valid (e.g., "37 deg 46' 29.64\" N")
+      if ('description' in value) {
+        const desc = String(value.description);
+        if (desc && 
+            desc.toLowerCase() !== 'nan' && 
+            desc.toLowerCase() !== 'nu' && // ExifReader sometimes returns 'nu' for null
+            !desc.includes('NaN') && 
+            desc.trim().length > 0) {
+          return desc;
+        }
+      }
+      
+      if ('value' in value) {
+        rawValue = value.value;
       }
     }
     
-    // Extract the actual value
-    let rawValue = value;
-    if (value && typeof value === 'object' && 'value' in value) {
-      rawValue = value.value;
+    // Explicitly handle "NaN" string which mobile browsers might produce
+    if (String(rawValue).toLowerCase() === 'nan') return 'N/A';
+
+    // Handle coordinate arrays [degrees, minutes, seconds]
+    if (Array.isArray(rawValue)) {
+      // Recursive flatten for nested arrays (some cleanups do this)
+      const flat = rawValue.flat(Infinity);
+      
+      // Filter invalid numbers
+      const validNumbers = flat.map(v => parseFloat(String(v))).filter(n => !isNaN(n));
+      
+      if (validNumbers.length === 0) return 'N/A';
+      
+      // If it looks like DMS (Degrees Minutes Seconds)
+      if (validNumbers.length >= 3 && (key.includes('Latitude') || key.includes('Longitude'))) {
+        const degrees = validNumbers[0];
+        const minutes = validNumbers[1];
+        const seconds = validNumbers[2];
+        
+        // Calculate decimal degrees
+        const decimal = degrees + (minutes / 60) + (seconds / 3600);
+        
+        // Check if value is 0 (often default for missing GPS)
+        if (Math.abs(decimal) < 0.0001) return 'N/A';
+        
+        return `${degrees}° ${minutes}' ${seconds.toFixed(4)}"`;
+      }
+      
+      // Just join valid numbers
+      return validNumbers.join(', ');
     }
+    
+    // Handle single number
+    const num = parseFloat(String(rawValue));
+    if (!isNaN(num)) {
+       // Filter out 0 for lat/long as it usually means missing data
+       if (Math.abs(num) < 0.0001 && (key.includes('Latitude') || key.includes('Longitude'))) {
+         return 'N/A';
+       }
+       return String(num);
+    }
+    
+    return String(rawValue);
+  } catch (e) {
+    return 'N/A';
+  }
+}
     
     // Handle array format (degrees, minutes, seconds)
     if (Array.isArray(rawValue)) {
