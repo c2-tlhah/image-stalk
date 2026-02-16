@@ -35,7 +35,9 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler pages deploy ./build/client --project-name=image-stalk --branch=master
+        run: |
+      dir build/client
+      npx wrangler pages deploy ./build/client --project-name=image-stalk --branch=master
 
       - name: Deployment summary
         run: |
