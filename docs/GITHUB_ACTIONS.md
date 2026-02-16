@@ -134,7 +134,7 @@ Add these badges to your README.md:
 ### Error: Build fails
 
 - Test the build locally: `npm run build`
-- Check the Node.js version matches (we use Node 18)
+- Check the Node.js version matches (we use Node 20)
 - Verify all dependencies are in `package.json`
 
 ### Error: "ERESOLVE could not resolve" or peer dependency conflicts

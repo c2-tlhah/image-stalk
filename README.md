@@ -170,7 +170,7 @@
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+ and npm
+- [Node.js](https://nodejs.org/) 20+ and npm
 - [Cloudflare account](https://dash.cloudflare.com/sign-up) (free tier)
 - [Git](https://git-scm.com/)
 
