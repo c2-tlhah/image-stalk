@@ -3,10 +3,15 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/c2-tlhah/stalkimg.git"
+  },
+  "author": "c2-tlhah",
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev",
-    "dev:remote": "npm run build && wrangler pages dev ./build/client --remote",
+    "dev:remote": "npm run build && wrangler pages dev ./build/client --d1 DB=444bc68b-4b5f-4e9f-8c7e-4a7fd23e72e4",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "wrangler pages dev ./build/client",
     "typecheck": "tsc",
@@ -45,7 +50,7 @@
     "typescript": "^5.1.6",
     "vite": "^5.1.0",
     "vite-tsconfig-paths": "^4.2.0",
-    "wrangler": "^3.30.1",
+    "wrangler": "^4.0.0",
     "tsx": "^4.7.0"
   },
   "engines": {

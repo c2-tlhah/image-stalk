@@ -27,7 +27,7 @@ git init
 git add .
 git commit -m "Initial commit: ProfileImageIntel Lite"
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/REPO_NAME.git
+git remote add origin https://github.com/c2-tlhah/stalkimg.git
 git push -u origin main
 ```
 

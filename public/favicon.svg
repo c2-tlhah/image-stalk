@@ -1,4 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#4F46E5" rx="4"/>
-  <text x="16" y="22" font-size="18" font-weight="bold" fill="white" text-anchor="middle" font-family="Arial">P</text>
+  <rect width="32" height="32" fill="#000000" rx="2"/>
+  <rect x="1" y="1" width="30" height="30" fill="none" stroke="#22C55E" stroke-width="1.5" rx="1"/>
+  <text x="16" y="21" font-size="16" font-weight="bold" fill="#22C55E" text-anchor="middle" font-family="monospace">P</text>
+  <circle cx="5" cy="5" r="1" fill="#EF4444"/>
+  <circle cx="9" cy="5" r="1" fill="#EAB308"/>
+  <circle cx="13" cy="5" r="1" fill="#22C55E"/>
 </svg>

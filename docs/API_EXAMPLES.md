@@ -393,4 +393,4 @@ monitorImage('https://example.com/profile.jpg', 60);
 
 ---
 
-For more examples and updates, see the [GitHub repository](https://github.com/your-repo).
+For more examples and updates, see the [GitHub repository](https://github.com/c2-tlhah/stalkimg).

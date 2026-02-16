@@ -88,7 +88,7 @@ We love feature suggestions! Please include:
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/profilestalk.git
+git clone https://github.com/c2-tlhah/profilestalk.git
 cd profilestalk
 
 # Install dependencies
@@ -291,8 +291,8 @@ When adding features, update:
 
 ## Getting Help
 
-- **Questions?** Open a [Discussion](https://github.com/YOUR_ORG/profilestalk/discussions)
-- **Bug found?** Open an [Issue](https://github.com/YOUR_ORG/profilestalk/issues)
+- **Questions?** Open a [Discussion](https://github.com/c2-tlhah/stalkimg/discussions)
+- **Bug found?** Open an [Issue](https://github.com/c2-tlhah/stalkimg/issues)
 - **Want to chat?** Join our [Discord](#) (if available)
 
 ## Recognition
