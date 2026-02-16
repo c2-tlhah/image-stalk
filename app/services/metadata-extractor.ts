@@ -422,21 +422,7 @@ function formatGPSValue(key: string, value: any): string {
     }
     
     // Handle single number
-    const num = parseFloat(String(rawValue));
-    if (!isNaN(num)) {
-       // Filter out 0 for lat/long as it usually means missing data
-       if (Math.abs(num) < 0.0001 && (key.includes('Latitude') || key.includes('Longitude'))) {
-         return 'N/A';
-       }
-       return String(num);
-    }
-    
-    return String(rawValue);
-  } catch (e) {
-    return 'N/A';
-  }
-}
-    
+
     // Handle array format (degrees, minutes, seconds)
     if (Array.isArray(rawValue)) {
       // Check if all values are zero or invalid
@@ -503,6 +489,7 @@ function formatGPSValue(key: string, value: any): string {
     }
     
     return strValue;
+
   } catch (error) {
     console.warn(`Failed to format GPS value for ${key}:`, error);
     return 'N/A';
