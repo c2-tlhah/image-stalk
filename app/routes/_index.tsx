@@ -188,9 +188,10 @@ export default function Index() {
     <div className="min-h-screen scanline py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* ASCII Art Header */}
-        <div className="text-center mb-8 terminal-glow">
-          <div className="overflow-x-auto pb-2">
-            <pre className="text-green-400 text-[0.6rem] sm:text-xs md:text-sm leading-tight mb-4 glitch inline-block text-left sm:text-center whitespace-pre">
+        <div className="text-center mb-8 terminal-glow overflow-hidden">
+          <div className="flex justify-center pb-2 w-full">
+            <div className="scale-[0.55] xs:scale-[0.7] sm:scale-100 origin-center">
+              <pre className="text-green-400 text-xs sm:text-xs md:text-sm leading-[1.1] mb-4 glitch whitespace-pre inline-block text-left">
 {`
  _____ _____ _____ _____ _____ __    _____        _____ _____ _____ _____ __    
 |  _  | __  |     |   __|     |  |  |   __|___  _|     |   | |_   _|   __|  |   
@@ -198,9 +199,10 @@ export default function Index() {
 |__|  |__|__|_____|__|  |_____|_____|_____|       |_____|_|___| |_| |_____|_____|
                                    L I T E
 `}
-            </pre>
+              </pre>
+            </div>
           </div>
-          <p className="text-green-300 text-xs sm:text-sm tracking-wider px-2 break-words">
+          <p className="text-green-300 text-xs sm:text-sm tracking-wider px-2 break-words -mt-6 sm:mt-0">
             &gt; IMAGE FORENSICS AND METADATA EXTRACTION SYSTEM
           </p>
         </div>

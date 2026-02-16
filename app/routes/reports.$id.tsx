@@ -80,7 +80,7 @@ export default function ReportDetail() {
   
   // Get the best "last updated" date from time signals
   const getLastUpdatedDate = () => {
-    // Check if we have EXIF capture time - prioritize this for uploads OR if available
+    // Priority 1: EXIF capture time (most reliable for camera photos)
     if (results.time_signals?.exif_capture_time?.iso_value) {
       return {
         date: formatISODate(results.time_signals.exif_capture_time.iso_value),
@@ -89,35 +89,34 @@ export default function ReportDetail() {
       };
     }
     
-    // Check EXIF modify time next
+    // Priority 2: EXIF modify time
     if (results.time_signals?.exif_modify_time?.iso_value) {
       return {
         date: formatISODate(results.time_signals.exif_modify_time.iso_value),
-        source: 'EXIF DateTime', // Updated label to match
+        source: 'EXIF DateTime',
         confidence: 100
       };
     }
 
-    // Then check HTTP Last-Modified (only relevant for URLs usually)
-    if (results.time_signals?.server_last_modified?.iso_value) {
+    // Priority 3: Client Last Modified (for uploads without EXIF)
+    if (results.time_signals?.client_last_modified?.iso_value) {
       return {
-        date: formatISODate(results.time_signals.server_last_modified.iso_value),
-        source: 'HTTP Last-Modified',
-        confidence: 100
-      };
-    }
-
-    // Check Client Last Modified (for uploads)
-    // Note: TypeScript might not know about client_last_modified yet if types aren't fully propagated in IDE, but runtime works
-    if ((results.time_signals as any).client_last_modified?.iso_value) {
-      return {
-        date: formatISODate((results.time_signals as any).client_last_modified.iso_value),
+        date: formatISODate(results.time_signals.client_last_modified.iso_value),
         source: 'File Last Modified',
-        confidence: 100
+        confidence: 90
       };
     }
 
-    // Fallback to when system first analyzed it
+    // Priority 4: HTTP Last-Modified (for URLs)
+    if (results.time_signals?.server_last_modified?.iso_value) {
+       return {
+         date: formatISODate(results.time_signals.server_last_modified.iso_value),
+         source: 'HTTP Last-Modified',
+         confidence: 70
+       };
+    }
+
+    // Priority 5: Fallback to when system first analyzed it
     if (results.time_signals?.first_seen_by_system?.iso_value) {
       return {
         date: formatISODate(results.time_signals.first_seen_by_system.iso_value),

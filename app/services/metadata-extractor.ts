@@ -301,14 +301,46 @@ function sanitizeMetadata(obj: any, redactedFields: string[]): Record<string, an
     // Convert ExifReader objects to simple values
     if (value && typeof value === 'object') {
       if ('description' in value) {
+        // Prefer description (human-readable format)
         result[key] = value.description;
       } else if ('value' in value) {
-        result[key] = value.value;
+        // Handle the value property
+        const val = value.value;
+        if (Array.isArray(val)) {
+          // For arrays (like GPS coordinates), format them nicely
+          if (val.length === 1) {
+            result[key] = String(val[0]);
+          } else if (val.length > 1) {
+            result[key] = val.join(', ');
+          } else {
+            result[key] = 'N/A';
+          }
+        } else if (val !== null && val !== undefined) {
+          result[key] = String(val);
+        } else {
+          result[key] = 'N/A';
+        }
+      } else if (Array.isArray(value)) {
+        // Direct array (not wrapped in object)
+        if (value.length === 1) {
+          result[key] = String(value[0]);
+        } else if (value.length > 1) {
+          result[key] = value.join(', ');
+        } else {
+          result[key] = 'N/A';
+        }
       } else {
-        result[key] = value;
+        // Other object types - try to stringify
+        try {
+          result[key] = JSON.stringify(value);
+        } catch {
+          result[key] = String(value);
+        }
       }
-    } else {
+    } else if (value !== null && value !== undefined) {
       result[key] = value;
+    } else {
+      result[key] = 'N/A';
     }
   }
   
