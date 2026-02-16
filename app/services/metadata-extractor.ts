@@ -408,13 +408,15 @@ export function extractTimeSignals(
   client_last_modified: TimeSignal;
 } {
   // Try multiple EXIF date fields for capture time
+  // Some cameras (like MediaTek) use standard DateTime for capture if DateTimeOriginal is missing
   const captureDate = exifDateToISO(
     metadata.exif.DateTimeOriginal || 
-    metadata.exif.CreateDate || 
-    metadata.exif['Date/Time Original']
+    metadata.exif['Date/Time Original'] ||
+    metadata.exif.CreateDate
   );
   
   // Try multiple EXIF date fields for modify time
+  // Note: Standard EXIF defines DateTime as modification time, but users often see it as "the date"
   const modifyDate = exifDateToISO(
     metadata.exif.ModifyDate || 
     metadata.exif.DateTime || 
@@ -426,13 +428,13 @@ export function extractTimeSignals(
       captureDate,
       'EXIF DateTimeOriginal',
       'Camera capture time (user-editable)',
-      captureDate ? 60 : 0
+      captureDate ? 100 : 0
     ),
     exif_modify_time: createTimeSignal(
       modifyDate,
-      'EXIF ModifyDate',
+      'EXIF DateTime', // Changed label to match user request seeing "DateTime"
       'File modification time per EXIF (user-editable)',
-      modifyDate ? 50 : 0
+      modifyDate ? 100 : 0 // User wants this confident
     ),
     server_last_modified: createTimeSignal(
       headers?.['last-modified'] || null,

@@ -93,7 +93,7 @@ export default function ReportDetail() {
     if (results.time_signals?.exif_modify_time?.iso_value) {
       return {
         date: formatISODate(results.time_signals.exif_modify_time.iso_value),
-        source: 'EXIF Modify Time',
+        source: 'EXIF DateTime', // Updated label to match
         confidence: 100
       };
     }
