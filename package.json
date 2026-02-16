@@ -9,7 +9,7 @@
   },
   "author": "c2-tlhah",
   "scripts": {
-    "build": "remix vite:build && esbuild worker.ts --bundle --outfile=build/client/_worker.js --format=esm --platform=browser --target=es2020 --menu=true",
+    "build": "remix vite:build && npx esbuild worker.ts --bundle --outfile=build/client/_worker.js --format=esm --platform=browser --target=es2020",
     "dev": "remix vite:dev",
     "dev:remote": "npm run build && wrangler pages dev ./build/client --d1 DB=444bc68b-4b5f-4e9f-8c7e-4a7fd23e72e4",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
