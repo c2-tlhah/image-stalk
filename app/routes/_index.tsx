@@ -68,6 +68,61 @@ export default function Index() {
       const formData = new FormData();
       formData.append('file', file);
       
+      // Generate client-side preview for the file if possible
+      try {
+        if (file.type.startsWith('image/')) {
+          const previewUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const result = e.target?.result as string;
+              // If image is small enough, use it directly
+              if (result.length < 500000) { // 500KB
+                 resolve(result);
+                 return;
+              }
+              
+              // Otherwise resize it using canvas
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Calculate new dimensions (max 600px width/height)
+                const MAX_SIZE = 600;
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > height) {
+                  if (width > MAX_SIZE) {
+                    height *= MAX_SIZE / width;
+                    width = MAX_SIZE;
+                  }
+                } else {
+                  if (height > MAX_SIZE) {
+                    width *= MAX_SIZE / height;
+                    height = MAX_SIZE;
+                  }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                // Compress to JPEG 70% quality
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+              };
+              img.src = result;
+            };
+            reader.readAsDataURL(file);
+          });
+          
+          if (previewUrl) {
+            formData.append('preview_image', previewUrl);
+          }
+        }
+      } catch (previewError) {
+        console.error('Client-side preview generation failed:', previewError);
+        // Continue without preview
+      }
+      
       const response = await fetch('/api/analyze', {
         method: 'POST',
         body: formData,
