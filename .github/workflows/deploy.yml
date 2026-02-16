@@ -38,7 +38,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: image-stalk
           directory: ./build/client
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deployment summary
         run: |
