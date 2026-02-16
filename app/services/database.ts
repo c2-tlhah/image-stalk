@@ -18,14 +18,16 @@ function generateId(): string {
 export async function saveReport(
   db: D1Database,
   result: AnalysisResult,
+  imageData: ArrayBuffer | null = null,
+  contentType: string | null = null,
   userId: string | null = null
 ): Promise<string> {
   const reportId = generateId();
   
   await db
     .prepare(
-      `INSERT INTO reports (id, user_id, input_type, source_url, final_url, created_at, sha256, phash, results_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO reports (id, user_id, input_type, source_url, final_url, created_at, sha256, phash, results_json, image_data, content_type, image_size)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       reportId,
@@ -36,7 +38,10 @@ export async function saveReport(
       result.created_at,
       result.hashes.sha256,
       result.hashes.phash,
-      JSON.stringify(result)
+      JSON.stringify(result),
+      imageData ? new Uint8Array(imageData) : null,
+      contentType,
+      imageData ? imageData.byteLength : null
     )
     .run();
   

@@ -11,6 +11,15 @@ import { fetchSafeUrl } from './url-fetcher';
 import { resolveProfileImageUrl } from './profile-resolver';
 
 /**
+ * Result with image data for storage
+ */
+export interface AnalysisResultWithImage {
+  result: AnalysisResult;
+  imageBuffer: ArrayBuffer;
+  contentType: string;
+}
+
+/**
  * Generates a unique ID
  */
 export function generateId(): string {
@@ -23,7 +32,7 @@ export function generateId(): string {
 export async function analyzeImageFromUrl(
   url: string,
   options: { maxSizeMB: number; timeoutMs: number }
-): Promise<AnalysisResult> {
+): Promise<AnalysisResultWithImage> {
   // Try to resolve profile image first (e.g. from Instagram/Twitter profile URL)
   let targetUrl = url;
   
@@ -64,13 +73,22 @@ export async function analyzeImageFromUrl(
   };
   
   // Analyze the image
-  return await analyzeImageBuffer(
+  const result = await analyzeImageBuffer(
     fetchResult.buffer,
     'url',
     url,
     fetchResult.finalUrl,
     httpHeaders
   );
+  
+  // Determine content type
+  const contentType = fetchResult.headers['content-type'] || 'image/jpeg';
+  
+  return {
+    result,
+    imageBuffer: fetchResult.buffer,
+    contentType,
+  };
 }
 
 /**
@@ -82,7 +100,7 @@ export async function analyzeImageFromUpload(
   clientPreviewDataUrl?: string | null,
   clientLastModified?: number | null,
   clientExif?: any
-): Promise<AnalysisResult> {
+): Promise<AnalysisResultWithImage> {
   // Use client-provided preview if available, otherwise generate one server-side (only for small files)
   let previewDataUrl: string | null = clientPreviewDataUrl || null;
   
@@ -98,46 +116,32 @@ export async function analyzeImageFromUpload(
       else if (header.startsWith('47494638')) mime = 'image/gif';
       else if (header.startsWith('52494646')) mime = 'image/webp';
       
-      // For large files (>2MB), we still want a preview if possible.
-      // However, storing >2MB in D1 causes errors.
-      // We can try to downscale it? No, we don't have sharp/canvas.
-      // We can try to just take the first X KB? No, corrupts image.
-      // COMPROMISE: We will store "No Preview Available" if too big, 
-      // OR we can try to rely on the browser's uploaded file object URL on the client side?
-      // But the report page is server-rendered later.
-      
-      // Let's try to increase the limit slightly to 5MB? No, SQLITE limit is usually strict on binding size.
-      // But wait, the previous error was SQLITE_TOOBIG.
-      // D1 limit is 100MB for DB size, but binding parameter limit might be smaller.
-      // Documentation says 128MB for binding? 
-      // "SQLITE_TOOBIG: string or blob too big" usually means > 1GB or exceeding some lower limit via Wrangler/D1 proxy.
-      // The default limit for a binding in Cloudflare D1 is 100MB.
-      
-      // Wait, the user said "limit to 50MB".
-      // 50MB base64 string is massive.
-      // Maybe we just disable preview for > 1MB to be safe and fast.
-      
-      const maxPreviewBytes = 1 * 1024 * 1024; // 1MB limit for preview to be safe
-      
-      if (bytes.length > maxPreviewBytes) {
-        previewDataUrl = null; // Too big for D1 string storage
-      } else {
-        // Chunked conversion
-        const chunkSize = 8192;
-        let base64 = '';
-        for (let i = 0; i < bytes.length; i += chunkSize) {
-          const chunk = bytes.slice(i, Math.min(i + chunkSize, bytes.length));
-          base64 += btoa(String.fromCharCode(...chunk));
-        }
-        previewDataUrl = `data:${mime};base64,${base64}`;
-      }
+      // IMPORTANT: We're storing images in the database now,
+      // so we don't need to embed large base64 previews.
+      // We'll disable preview generation entirely and rely on database storage.
+      previewDataUrl = null;
     } catch (error) {
       console.error('Failed to create preview:', error);
       // Continue without preview
     }
   }
   
-  return await analyzeImageBuffer(buffer, 'upload', null, null, undefined, previewDataUrl, clientLastModified, clientExif);
+  const result = await analyzeImageBuffer(buffer, 'upload', null, null, undefined, previewDataUrl, clientLastModified, clientExif);
+  
+  // Detect content type from buffer
+  const bytes = new Uint8Array(buffer);
+  const header = Array.from(bytes.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join('');
+  let contentType = 'image/jpeg';
+  if (header.startsWith('89504e47')) contentType = 'image/png';
+  else if (header.startsWith('47494638')) contentType = 'image/gif';
+  else if (header.startsWith('52494646')) contentType = 'image/webp';
+  else if (header.startsWith('424d')) contentType = 'image/bmp';
+  
+  return {
+    result,
+    imageBuffer: buffer,
+    contentType,
+  };
 }
 
 /**
@@ -194,20 +198,20 @@ export async function recheckUrl(
     throw new Error('Cannot recheck: no source URL');
   }
   
-  const newResult = await analyzeImageFromUrl(previousResult.source_url, options);
+  const analysisResult = await analyzeImageFromUrl(previousResult.source_url, options);
   
   // Determine change type
   let changeType: 'unchanged' | 'content_changed' | 'headers_changed' = 'unchanged';
   
-  if (newResult.hashes.sha256 !== previousResult.hashes.sha256) {
+  if (analysisResult.result.hashes.sha256 !== previousResult.hashes.sha256) {
     changeType = 'content_changed';
   } else if (
-    newResult.http_headers?.headers['etag'] !== previousResult.http_headers?.headers['etag'] ||
-    newResult.http_headers?.headers['last-modified'] !==
+    analysisResult.result.http_headers?.headers['etag'] !== previousResult.http_headers?.headers['etag'] ||
+    analysisResult.result.http_headers?.headers['last-modified'] !==
       previousResult.http_headers?.headers['last-modified']
   ) {
     changeType = 'headers_changed';
   }
   
-  return { result: newResult, changeType };
+  return { result: analysisResult.result, changeType };
 }

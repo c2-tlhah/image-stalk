@@ -66,8 +66,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const maxSizeMB = parseInt(env.MAX_FILE_SIZE_MB || '15', 10);
       const timeoutMs = parseInt(env.REQUEST_TIMEOUT_MS || '10000', 10);
       
-      const result = await analyzeImageFromUrl(url, { maxSizeMB, timeoutMs });
-      const reportId = await saveReport(db, result);
+      const analysisResult = await analyzeImageFromUrl(url, { maxSizeMB, timeoutMs });
+      const reportId = await saveReport(
+        db, 
+        analysisResult.result, 
+        analysisResult.imageBuffer, 
+        analysisResult.contentType
+      );
       
       return json({
         success: true,
@@ -131,8 +136,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       
       const buffer = await file.arrayBuffer();
       // Pass the client-generated preview image and client-side EXIF to the analyzer
-      const result = await analyzeImageFromUpload(buffer, file.name, previewImage, clientLastModified, clientExif);
-      const reportId = await saveReport(db, result);
+      const analysisResult = await analyzeImageFromUpload(buffer, file.name, previewImage, clientLastModified, clientExif);
+      const reportId = await saveReport(
+        db, 
+        analysisResult.result, 
+        analysisResult.imageBuffer, 
+        analysisResult.contentType
+      );
       
       return json({
         success: true,

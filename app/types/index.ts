@@ -118,6 +118,9 @@ export interface Report {
   sha256: string;
   phash: string;
   results_json: string; // Stringified AnalysisResult
+  image_data: ArrayBuffer | null; // Stored image binary data
+  content_type: string | null; // Image MIME type
+  image_size: number | null; // Image size in bytes
 }
 
 export interface Event {

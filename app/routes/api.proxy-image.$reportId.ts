@@ -24,7 +24,21 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
       return new Response('Report not found', { status: 404 });
     }
     
-    // Check if we have a preview_data_url first (for uploads)
+    // Priority 1: Check if we have image_data stored in the database
+    if (report.image_data) {
+      const contentType = report.content_type || 'image/jpeg';
+      
+      return new Response(report.image_data, {
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=31536000, immutable',
+          'Access-Control-Allow-Origin': '*',
+          'Content-Length': report.image_size?.toString() || '',
+        },
+      });
+    }
+    
+    // Priority 2: Check if we have a preview_data_url (legacy base64 storage)
     const results = JSON.parse(report.results_json);
     if (results.preview_data_url) {
       // Extract base64 data
@@ -47,10 +61,10 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
       }
     }
     
-    // For URL-based images, fetch and proxy
+    // Priority 3: For URL-based images, fetch and proxy (fallback for old reports)
     const imageUrl = report.final_url || report.source_url;
     if (!imageUrl) {
-      return new Response('No image URL available', { status: 404 });
+      return new Response('No image available', { status: 404 });
     }
     
     // Fetch with our safe fetcher (includes proper headers)
