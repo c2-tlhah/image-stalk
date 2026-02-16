@@ -88,8 +88,8 @@ We love feature suggestions! Please include:
 
 ```bash
 # Clone your fork
-git clone https://github.com/c2-tlhah/profilestalk.git
-cd profilestalk
+git clone https://github.com/c2-tlhah/image-stalk.git
+cd image-stalk
 
 # Install dependencies
 npm install
@@ -291,8 +291,8 @@ When adding features, update:
 
 ## Getting Help
 
-- **Questions?** Open a [Discussion](https://github.com/c2-tlhah/stalkimg/discussions)
-- **Bug found?** Open an [Issue](https://github.com/c2-tlhah/stalkimg/issues)
+- **Questions?** Open a [Discussion](https://github.com/c2-tlhah/image-stalk/discussions)
+- **Bug found?** Open an [Issue](https://github.com/c2-tlhah/image-stalk/issues)
 - **Want to chat?** Join our [Discord](#) (if available)
 
 ## Recognition

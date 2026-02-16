@@ -13,7 +13,7 @@ To enable automated deployment to Cloudflare Pages, add these secrets to your Gi
 4. Copy the token
 
 **Add to GitHub:**
-- Go to: `https://github.com/c2-tlhah/stalkimg/settings/secrets/actions`
+- Go to: `https://github.com/c2-tlhah/image-stalk/settings/secrets/actions`
 - Click "New repository secret"
 - Name: `CLOUDFLARE_API_TOKEN`
 - Paste the token
@@ -26,7 +26,7 @@ To enable automated deployment to Cloudflare Pages, add these secrets to your Gi
 3. Copy "Account ID" from the right sidebar
 
 **Add to GitHub:**
-- Go to: `https://github.com/c2-tlhah/stalkimg/settings/secrets/actions`
+- Go to: `https://github.com/c2-tlhah/image-stalk/settings/secrets/actions`
 - Click "New repository secret"
 - Name: `CLOUDFLARE_ACCOUNT_ID`
 - Paste the account ID
@@ -43,7 +43,7 @@ After setting up secrets:
    ```
 
 2. Check the Actions tab:
-   - Visit: `https://github.com/c2-tlhah/stalkimg/actions`
+   - Visit: `https://github.com/c2-tlhah/image-stalk/actions`
    - You should see the workflow running
 
 3. Once deployed, visit your Cloudflare Pages dashboard to see the deployment

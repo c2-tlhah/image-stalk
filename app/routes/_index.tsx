@@ -294,7 +294,7 @@ export default function Index() {
           <p>&gt; IMAGES NOT STORED | ONLY METADATA RETAINED</p>
           <div className="mt-4 flex items-center justify-center gap-4">
             <a
-              href="https://github.com/c2-tlhah/stalkimg"
+              href="https://github.com/c2-tlhah/image-stalk"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 border border-green-500 text-green-400 hover:bg-green-500/10 hover:text-green-300 transition-colors"

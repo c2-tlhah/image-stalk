@@ -7,14 +7,14 @@
 *Extract metadata, track changes, and uncover digital fingerprints from any image*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/c2-tlhah/stalkimg/actions/workflows/ci.yml/badge.svg)](https://github.com/c2-tlhah/stalkimg/actions/workflows/ci.yml)
-[![Deploy](https://github.com/c2-tlhah/stalkimg/actions/workflows/deploy.yml/badge.svg)](https://github.com/c2-tlhah/stalkimg/actions/workflows/deploy.yml)
+[![CI](https://github.com/c2-tlhah/image-stalk/actions/workflows/ci.yml/badge.svg)](https://github.com/c2-tlhah/image-stalk/actions/workflows/ci.yml)
+[![Deploy](https://github.com/c2-tlhah/image-stalk/actions/workflows/deploy.yml/badge.svg)](https://github.com/c2-tlhah/image-stalk/actions/workflows/deploy.yml)
 [![Cloudflare Pages](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-F38020?logo=cloudflare&logoColor=white)](docs/DEPLOYMENT.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.1-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Remix](https://img.shields.io/badge/Remix-2.8-000000?logo=remix&logoColor=white)](https://remix.run)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-[**🚀 Quick Start**](#-quick-start) • [**📖 Documentation**](docs/) • [**💬 Discussions**](https://github.com/c2-tlhah/stalkimg/discussions)
+[**🚀 Quick Start**](#-quick-start) • [**📖 Documentation**](docs/) • [**💬 Discussions**](https://github.com/c2-tlhah/image-stalk/discussions)
 
 ---
 
@@ -178,8 +178,8 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/c2-tlhah/stalkimg.git
-cd stalkimg
+git clone https://github.com/c2-tlhah/image-stalk.git
+cd image-stalk
 
 # 2. Install dependencies
 npm install
@@ -432,8 +432,8 @@ We love contributions! Check out our [Contributing Guide](CONTRIBUTING.md) to ge
 ### Development Setup
 
 ```bash
-git clone https://github.com/c2-tlhah/stalkimg.git
-cd stalkimg
+git clone https://github.com/c2-tlhah/image-stalk.git
+cd image-stalk
 npm install
 npm run dev
 ```
@@ -524,9 +524,9 @@ Special thanks to the OSINT and digital forensics community for inspiration.
 
 ## 📧 Support & Community
 
-- **🐛 Found a bug?** [Open an issue](https://github.com/c2-tlhah/stalkimg/issues/new?template=bug_report.md)
-- **💡 Have an idea?** [Request a feature](https://github.com/c2-tlhah/stalkimg/issues/new?template=feature_request.md)
-- **❓ Questions?** [Start a discussion](https://github.com/c2-tlhah/stalkimg/discussions)
+- **🐛 Found a bug?** [Open an issue](https://github.com/c2-tlhah/image-stalk/issues/new?template=bug_report.md)
+- **💡 Have an idea?** [Request a feature](https://github.com/c2-tlhah/image-stalk/issues/new?template=feature_request.md)
+- **❓ Questions?** [Start a discussion](https://github.com/c2-tlhah/image-stalk/discussions)
 - **💬 Chat with us?** [Join Discord](#) *(coming soon)*
 
 ---
@@ -535,7 +535,7 @@ Special thanks to the OSINT and digital forensics community for inspiration.
 
 If you find ProfileStalk useful, please consider giving it a star! ⭐
 
-[![Star History Chart](https://api.star-history.com/svg?repos=c2-tlhah/stalkimg&type=Date)](https://star-history.com/#c2-tlhah/stalkimg&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=c2-tlhah/image-stalk&type=Date)](https://star-history.com/#c2-tlhah/image-stalk&Date)
 
 ---
 

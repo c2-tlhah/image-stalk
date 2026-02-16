@@ -111,8 +111,8 @@ You can trigger a deployment manually:
 Add these badges to your README.md:
 
 ```markdown
-[![CI](https://github.com/c2-tlhah/stalkimg/actions/workflows/ci.yml/badge.svg)](https://github.com/c2-tlhah/stalkimg/actions/workflows/ci.yml)
-[![Deploy](https://github.com/c2-tlhah/stalkimg/actions/workflows/deploy.yml/badge.svg)](https://github.com/c2-tlhah/stalkimg/actions/workflows/deploy.yml)
+[![CI](https://github.com/c2-tlhah/image-stalk/actions/workflows/ci.yml/badge.svg)](https://github.com/c2-tlhah/image-stalk/actions/workflows/ci.yml)
+[![Deploy](https://github.com/c2-tlhah/image-stalk/actions/workflows/deploy.yml/badge.svg)](https://github.com/c2-tlhah/image-stalk/actions/workflows/deploy.yml)
 ```
 
 ---
@@ -136,6 +136,23 @@ Add these badges to your README.md:
 - Test the build locally: `npm run build`
 - Check the Node.js version matches (we use Node 18)
 - Verify all dependencies are in `package.json`
+
+### Error: "ERESOLVE could not resolve" or peer dependency conflicts
+
+This error occurs when @remix-run/dev expects wrangler 3.x but we're using wrangler 4.x:
+
+**Solution:**
+The project includes `.npmrc` with `legacy-peer-deps=true` and the workflows use `npm ci --legacy-peer-deps` to handle this conflict. This is expected and the project works correctly with wrangler 4.x.
+
+If you encounter this locally:
+```bash
+npm install --legacy-peer-deps
+```
+
+Or ensure your `.npmrc` file contains:
+```
+legacy-peer-deps=true
+```
 
 ### Error: "Workers-specific command in a Pages project" or Wrangler version issues
 
