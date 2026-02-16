@@ -307,6 +307,12 @@ function sanitizeMetadata(obj: any, redactedFields: string[]): Record<string, an
     //   continue;
     // }
     
+    // Special handling for GPS coordinates
+    if (key.startsWith('GPS')) {
+      result[key] = formatGPSValue(key, value);
+      continue;
+    }
+    
     // Convert ExifReader objects to simple values
     if (value && typeof value === 'object') {
       if ('description' in value) {
@@ -350,6 +356,99 @@ function sanitizeMetadata(obj: any, redactedFields: string[]): Record<string, an
   }
   
   return result;
+}
+
+/**
+ * Special handler for GPS values
+ */
+function formatGPSValue(key: string, value: any): string {
+  if (!value) return 'N/A';
+  
+  try {
+    // First try to get description if available
+    if (value && typeof value === 'object' && 'description' in value) {
+      const desc = value.description;
+      if (desc && String(desc).toLowerCase() !== 'nan' && desc !== 'null' && desc !== 'undefined') {
+        return String(desc);
+      }
+    }
+    
+    // Extract the actual value
+    let rawValue = value;
+    if (value && typeof value === 'object' && 'value' in value) {
+      rawValue = value.value;
+    }
+    
+    // Handle array format (degrees, minutes, seconds)
+    if (Array.isArray(rawValue)) {
+      // Check if all values are zero or invalid
+      const allZeroOrInvalid = rawValue.every(v => {
+        if (v === null || v === undefined) return true;
+        if (typeof v === 'number' && (isNaN(v) || v === 0)) return true;
+        if (String(v).toLowerCase() === 'nan' || String(v) === '0') return true;
+        return false;
+      });
+      
+      // If all zeros or invalid, return N/A
+      if (allZeroOrInvalid) {
+        return 'N/A';
+      }
+      
+      // GPS coordinates are usually [degrees, minutes, seconds]
+      if (rawValue.length === 3 && (key.includes('Latitude') || key.includes('Longitude'))) {
+        const [deg, min, sec] = rawValue.map(v => {
+          const num = parseFloat(String(v));
+          return isNaN(num) ? 0 : num;
+        });
+        
+        // Only convert if we have valid degrees
+        if (deg !== 0 || min !== 0 || sec !== 0) {
+          // Convert to decimal degrees
+          const decimal = deg + (min / 60) + (sec / 3600);
+          return decimal.toFixed(6) + '°';
+        }
+      }
+      
+      // For other GPS fields, filter and join valid values
+      const validValues = rawValue.filter(v => {
+        if (v === null || v === undefined) return false;
+        if (typeof v === 'number' && isNaN(v)) return false;
+        if (String(v).toLowerCase() === 'nan') return false;
+        return true;
+      });
+      
+      if (validValues.length > 0) {
+        return validValues.join(', ');
+      }
+      
+      return 'N/A';
+    }
+    
+    // Handle single numeric value
+    if (typeof rawValue === 'number') {
+      if (isNaN(rawValue)) {
+        return 'N/A';
+      }
+      // Allow 0 for single values (could be valid for altitude, etc.)
+      return String(rawValue);
+    }
+    
+    // Handle string value
+    const strValue = String(rawValue);
+    if (strValue.toLowerCase() === 'nan' || strValue === 'null' || strValue === 'undefined') {
+      return 'N/A';
+    }
+    
+    // Check if it's "0, 0, 0" pattern
+    if (/^0(,\s*0)*$/.test(strValue)) {
+      return 'N/A';
+    }
+    
+    return strValue;
+  } catch (error) {
+    console.warn(`Failed to format GPS value for ${key}:`, error);
+    return 'N/A';
+  }
 }
 
 /**
