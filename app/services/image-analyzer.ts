@@ -8,6 +8,7 @@ import { extractMetadata, extractTimeSignals } from './metadata-extractor';
 import { computeAllHashes } from './hashing';
 import { analyzeContent } from './content-analyzer';
 import { fetchSafeUrl } from './url-fetcher';
+import { resolveProfileImageUrl } from './profile-resolver';
 
 /**
  * Generates a unique ID
@@ -23,8 +24,20 @@ export async function analyzeImageFromUrl(
   url: string,
   options: { maxSizeMB: number; timeoutMs: number }
 ): Promise<AnalysisResult> {
+  // Try to resolve profile image first (e.g. from Instagram/Twitter profile URL)
+  let targetUrl = url;
+  try {
+    const resolvedUrl = await resolveProfileImageUrl(url);
+    if (resolvedUrl) {
+      targetUrl = resolvedUrl;
+    }
+  } catch (err) {
+    console.warn('Profile resolution failed:', err);
+    // Continue with original URL
+  }
+
   // Fetch the image
-  const fetchResult = await fetchSafeUrl(url, options);
+  const fetchResult = await fetchSafeUrl(targetUrl, options);
   
   if (!fetchResult.success || !fetchResult.buffer) {
     throw new Error(fetchResult.error || 'Failed to fetch image');

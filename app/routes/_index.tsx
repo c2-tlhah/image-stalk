@@ -251,14 +251,14 @@ export default function Index() {
             <form onSubmit={handleUrlSubmit} className="space-y-4">
               <div>
                 <label htmlFor="url-input" className="block text-sm font-mono text-green-400 mb-2">
-                  &gt; ENTER TARGET IMAGE URL:
+                  &gt; ENTER TARGET IMAGE URL OR PROFILE LINK:
                 </label>
                 <input
                   type="url"
                   id="url-input"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
+                  placeholder="https://example.com/image.jpg OR https://instagram.com/user"
                   className="w-full terminal-input font-mono"
                   required
                   disabled={loading}

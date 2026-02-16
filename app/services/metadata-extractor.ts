@@ -312,26 +312,66 @@ function exifDateToISO(exifDate: any): string | null {
     // Handle different input types
     let dateStr = '';
     
-    if (typeof exifDate === 'object' && 'description' in exifDate) {
-      dateStr = exifDate.description;
-    } else if (typeof exifDate === 'object' && 'value' in exifDate) {
-      dateStr = exifDate.value;
+    // Handle ExifReader's complex object structure
+    if (typeof exifDate === 'object') {
+      if ('description' in exifDate) {
+        dateStr = exifDate.description;
+      } else if ('value' in exifDate) {
+        // value can be string or array of strings
+        const val = exifDate.value;
+        if (Array.isArray(val) && val.length > 0) {
+          dateStr = val[0];
+        } else {
+          dateStr = String(val);
+        }
+      } else {
+        // Fallback toString if neither description nor value exists
+        dateStr = String(exifDate);
+      }
     } else if (typeof exifDate === 'string') {
       dateStr = exifDate;
     } else {
       return null;
     }
     
-    // EXIF date format is typically: "YYYY:MM:DD HH:MM:SS"
-    // Convert to ISO format: "YYYY-MM-DDTHH:MM:SS"
-    if (dateStr && typeof dateStr === 'string') {
-      const normalized = dateStr.replace(/^(\\d{4}):(\\d{2}):(\\d{2})/, '$1-$2-$3');
-      const date = new Date(normalized);
-      
-      if (!isNaN(date.getTime())) {
-        return date.toISOString();
-      }
+    // Clean up the string
+    dateStr = dateStr.trim();
+    if (!dateStr) return null;
+
+    // Common EXIF formats:
+    // "YYYY:MM:DD HH:MM:SS"
+    // "YYYY:MM:DD HH:MM:SS+00:00"
+    // "YYYY-MM-DD HH:MM:SS" (non-standard but possible)
+    
+    // 1. Try "YYYY:MM:DD" format first
+    // Replace colons in date part with dashes, and space with T
+    // regex: start with 4 digits, colon, 2 digits, colon, 2 digits
+    if (/^\d{4}:\d{2}:\d{2}/.test(dateStr)) {
+       // "2023:10:27 11:22:33" -> "2023-10-27T11:22:33"
+       // The regex /:(\d{2}):(\d{2})/g might match time parts too if not careful
+       // Safer: split by space
+       const parts = dateStr.split(' ');
+       if (parts.length >= 2) {
+         const datePart = parts[0].replace(/:/g, '-');
+         const timePart = parts[1];
+         // Reassemble as ISO-like
+         const isoLike = `${datePart}T${timePart}`;
+         const date = new Date(isoLike);
+         if (!isNaN(date.getTime())) return date.toISOString();
+       } else {
+         // Maybe just date? "2023:10:27"
+         const datePart = dateStr.replace(/:/g, '-');
+         const date = new Date(datePart);
+         if (!isNaN(date.getTime())) return date.toISOString();
+       }
     }
+    
+    // 2. Try standard Date parsing for other formats
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+      
   } catch (error) {
     console.warn('Failed to convert EXIF date:', error);
   }
