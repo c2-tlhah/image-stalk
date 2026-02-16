@@ -20,7 +20,17 @@ export default {
 
     const loadContext = getLoadContext({
         request,
-        context: { cloudflare: { use: () => {}, ...env, ...ctx, cf: request.cf, caches } }
+        context: { 
+          cloudflare: { 
+            env, 
+            ctx, 
+            cf: request.cf, 
+            caches,
+            use: () => {},
+            ...env, // spread env for backward compatibility if needed
+            ...ctx 
+          } 
+        }
     });
     return handleRequest(request, loadContext);
   }
