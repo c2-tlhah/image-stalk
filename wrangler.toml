@@ -1,0 +1,17 @@
+name = "profile-image-intel-lite"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "./build/client"
+
+# D1 Database - automatically uses:
+# - Local database during `npm run dev` (fast, isolated testing)
+# - Remote database when deployed to Cloudflare Pages
+# - Remote database with `npm run dev:remote` (slower, shared with production)
+[[d1_databases]]
+binding = "DB"
+database_name = "profile-image-intel"
+database_id = "444bc68b-4b5f-4e9f-8c7e-4a7fd23e72e4"
+
+[vars]
+MAX_FILE_SIZE_MB = "15"
+REQUEST_TIMEOUT_MS = "10000"
+RATE_LIMIT_PER_MINUTE = "10"

@@ -1,0 +1,83 @@
+/**
+ * Image Proxy Endpoint
+ * Serves images from reports to bypass CORS/hotlinking restrictions
+ */
+
+import { type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { Env } from '~/types';
+import { getReportById } from '~/services/database';
+import { fetchSafeUrl } from '~/services/url-fetcher';
+
+export async function loader({ params, context, request }: LoaderFunctionArgs) {
+  const env = context.env as Env;
+  const db = env.DB;
+  const reportId = params.reportId;
+  
+  if (!reportId) {
+    return new Response('Report ID required', { status: 400 });
+  }
+  
+  try {
+    const report = await getReportById(db, reportId);
+    
+    if (!report) {
+      return new Response('Report not found', { status: 404 });
+    }
+    
+    // Check if we have a preview_data_url first (for uploads)
+    const results = JSON.parse(report.results_json);
+    if (results.preview_data_url) {
+      // Extract base64 data
+      const matches = results.preview_data_url.match(/^data:([^;]+);base64,(.+)$/);
+      if (matches) {
+        const [, mimeType, base64Data] = matches;
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        return new Response(bytes, {
+          headers: {
+            'Content-Type': mimeType,
+            'Cache-Control': 'public, max-age=31536000, immutable',
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      }
+    }
+    
+    // For URL-based images, fetch and proxy
+    const imageUrl = report.final_url || report.source_url;
+    if (!imageUrl) {
+      return new Response('No image URL available', { status: 404 });
+    }
+    
+    // Fetch with our safe fetcher (includes proper headers)
+    const result = await fetchSafeUrl(imageUrl, {
+      maxSizeMB: 10,
+      timeoutMs: 15000,
+    });
+    
+    if (!result.success || !result.buffer) {
+      return new Response(result.error || 'Failed to fetch image', { status: 500 });
+    }
+    
+    // Determine content type
+    const contentType = result.headers['content-type'] || 'image/jpeg';
+    
+    return new Response(result.buffer, {
+      headers: {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=3600',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  } catch (error) {
+    console.error('Image proxy error:', error);
+    return new Response(
+      error instanceof Error ? error.message : 'Image proxy failed',
+      { status: 500 }
+    );
+  }
+}
