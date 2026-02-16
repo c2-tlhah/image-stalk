@@ -102,21 +102,28 @@ export default function Index() {
                   }
                 }
                 
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, width, height);
-                // Compress to JPEG 70% quality
-                resolve(canvas.toDataURL('image/jpeg', 0.7));
-              };
-              img.src = result;
+              canvas.width = Math.round(width);
+              canvas.height = Math.round(height);
+              img.crossOrigin = "anonymous";
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                  ctx.drawImage(img, 0, 0, Math.round(width), Math.round(height));
+                  // Compress to JPEG 70% quality
+                  resolve(canvas.toDataURL('image/jpeg', 0.7));
+              } else {
+                  resolve("");
+              }
             };
-            reader.readAsDataURL(file);
-          });
-          
-          if (previewUrl) {
-            formData.append('preview_image', previewUrl);
-          }
+            img.onerror = () => resolve("");
+            img.src = result;
+          };
+          reader.readAsDataURL(file);
+        });
+        
+        if (previewUrl) {
+          formData.append('preview_image', previewUrl);
+        }
+      }
         }
       } catch (previewError) {
         console.error('Client-side preview generation failed:', previewError);
