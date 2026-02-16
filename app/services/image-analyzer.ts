@@ -80,7 +80,8 @@ export async function analyzeImageFromUpload(
   buffer: ArrayBuffer,
   filename?: string,
   clientPreviewDataUrl?: string | null,
-  clientLastModified?: number | null
+  clientLastModified?: number | null,
+  clientExif?: any
 ): Promise<AnalysisResult> {
   // Use client-provided preview if available, otherwise generate one server-side (only for small files)
   let previewDataUrl: string | null = clientPreviewDataUrl || null;
@@ -136,7 +137,7 @@ export async function analyzeImageFromUpload(
     }
   }
   
-  return await analyzeImageBuffer(buffer, 'upload', null, null, undefined, previewDataUrl, clientLastModified);
+  return await analyzeImageBuffer(buffer, 'upload', null, null, undefined, previewDataUrl, clientLastModified, clientExif);
 }
 
 /**
@@ -149,11 +150,12 @@ async function analyzeImageBuffer(
   finalUrl: string | null,
   httpHeaders?: HttpHeaders,
   previewDataUrl?: string | null,
-  clientLastModified?: number | null
+  clientLastModified?: number | null,
+  clientExif?: any
 ): Promise<AnalysisResult> {
   // Run all analyses in parallel
   const [metadata, hashes, contentMetrics] = await Promise.all([
-    extractMetadata(buffer),
+    extractMetadata(buffer, clientExif),
     computeAllHashes(buffer),
     analyzeContent(buffer),
   ]);

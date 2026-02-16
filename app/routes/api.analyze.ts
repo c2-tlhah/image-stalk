@@ -83,6 +83,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const previewImage = formData.get('preview_image') as string | null;  // Accept preview from client
       const lastModifiedStr = formData.get('last_modified') as string | null;
       const clientLastModified = lastModifiedStr ? parseInt(lastModifiedStr, 10) : null;
+      const clientExifStr = formData.get('client_exif') as string | null;  // Client-side EXIF (for mobile)
+      
+      let clientExif: any = null;
+      if (clientExifStr) {
+        try {
+          clientExif = JSON.parse(clientExifStr);
+        } catch {
+          console.warn('Failed to parse client EXIF data');
+        }
+      }
       
       if (!file) {
         return json(
@@ -111,8 +121,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
       
       const buffer = await file.arrayBuffer();
-      // Pass the client-generated preview image to the analyzer
-      const result = await analyzeImageFromUpload(buffer, file.name, previewImage, clientLastModified);
+      // Pass the client-generated preview image and client-side EXIF to the analyzer
+      const result = await analyzeImageFromUpload(buffer, file.name, previewImage, clientLastModified, clientExif);
       const reportId = await saveReport(db, result);
       
       return json({

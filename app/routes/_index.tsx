@@ -69,6 +69,21 @@ export default function Index() {
       formData.append('file', file);
       formData.append('last_modified', String(file.lastModified));
       
+      // Extract EXIF data client-side BEFORE upload (critical for mobile)
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const ExifReader = await import('exifreader');
+        const tags = ExifReader.load(arrayBuffer, { expanded: true });
+        
+        // Send the raw EXIF tags to server
+        if (tags && Object.keys(tags).length > 0) {
+          formData.append('client_exif', JSON.stringify(tags));
+        }
+      } catch (exifError) {
+        console.warn('Client-side EXIF extraction failed:', exifError);
+        // Continue without client EXIF
+      }
+      
       // Generate client-side preview for the file if possible
       try {
         if (file.type.startsWith('image/')) {

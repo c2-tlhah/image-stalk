@@ -212,7 +212,7 @@ function createTimeSignal(
 /**
  * Main metadata extraction function
  */
-export async function extractMetadata(buffer: ArrayBuffer): Promise<ImageMetadata> {
+export async function extractMetadata(buffer: ArrayBuffer, clientExif?: any): Promise<ImageMetadata> {
   const fileInfo = detectFileType(buffer);
   const dimensions = extractDimensions(buffer, fileInfo.type);
   
@@ -222,15 +222,37 @@ export async function extractMetadata(buffer: ArrayBuffer): Promise<ImageMetadat
   let xmp: any = {};
   let gps: any = {};
   
+  // If client provided EXIF (from mobile upload), use it as primary source
+  if (clientExif && Object.keys(clientExif).length > 0) {
+    console.log('Using client-side EXIF data (mobile upload)');
+    tags = clientExif;
+    exif = clientExif.exif || clientExif.Exif || {};
+    iptc = clientExif.iptc || clientExif.IPTC || {};
+    xmp = clientExif.xmp || clientExif.XMP || {};
+    gps = clientExif.gps || clientExif.GPS || {};
+  }
+  
   try {
     // ExifReader.load expects ArrayBuffer
-    tags = ExifReader.load(buffer, { expanded: true });
+    const serverTags = ExifReader.load(buffer, { expanded: true });
     
-    // Extract EXIF, IPTC, XMP, GPS with fallbacks
-    exif = tags.exif || tags.Exif || {};
-    iptc = tags.iptc || tags.IPTC || {};
-    xmp = tags.xmp || tags.XMP || {};
-    gps = tags.gps || tags.GPS || {};
+    // If we don't have client EXIF, use server-extracted data
+    if (!clientExif || Object.keys(clientExif).length === 0) {
+      tags = serverTags;
+      exif = serverTags.exif || {};
+      iptc = serverTags.iptc || {};
+      xmp = serverTags.xmp || {};
+      gps = serverTags.gps || {};
+    } else {
+      // Merge server tags with client tags (client takes priority)
+      // This handles cases where mobile strips some fields but not all
+      const serverExif = serverTags.exif || {};
+      const serverGps = serverTags.gps || {};
+      
+      // Merge, but prioritize client data for GPS fields
+      exif = { ...serverExif, ...exif };
+      gps = { ...serverGps, ...gps };
+    }
     
     // Merge GPS data into exif for unified display
     if (gps && Object.keys(gps).length > 0) {
