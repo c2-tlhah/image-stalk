@@ -221,10 +221,11 @@ export default function Index() {
             <div className="scale-[0.55] xs:scale-[0.7] sm:scale-100 origin-center">
               <pre className="text-green-400 text-xs sm:text-xs md:text-sm leading-[1.1] mb-4 glitch whitespace-pre inline-block text-left">
 {`
- _____ _____ _____ _____ _____        _____ _____ _____ _____ __    
-|     |     |  _  |   __|   __|___  _|     |   | |_   _|   __|  |   
-|-   -| | | |     |  |  |   __|___|_||-   -| | | | | | |   __|  |__ 
-|_____|_|_|_|__|__|_____|_____|       |_____|_|___| |_| |_____|_____|
+ _____ __  __    _    ____ _____     _____ _   _ _____ _____ _     
+|_   _|  \/  |  / \  / ___| ____|   |_   _| \ | |_   _| ____| |    
+  | | | |\/| | / _ \| |  _|  _|       | | |  \| | | | |  _| | |    
+  | | | |  | |/ ___ \ |_| | |___      | | | |\  | | | | |___| |___ 
+  |_| |_|  |_/_/   \_\____|_____|     |_| |_| \_| |_| |_____|_____|
 `}
               </pre>
             </div>
@@ -390,7 +391,6 @@ export default function Index() {
               to="/guide"
               className="inline-flex items-center gap-2 px-4 py-2 border border-green-500 text-green-400 hover:bg-green-500/10 hover:text-green-300 transition-colors"
             >
-              <span>📚</span>
               <span>[USER GUIDE]</span>
             </Link>
             <a

@@ -157,7 +157,7 @@ export default function ReportDetail() {
           &lt; RETURN_TO_HOME
         </Link>
         <Link to="/guide" className="text-green-400 hover:text-green-300 font-mono text-xs border border-green-500/50 px-3 py-1">
-          📚 [GUIDE]
+          [GUIDE]
         </Link>
       </div>
       
@@ -320,7 +320,7 @@ export default function ReportDetail() {
                     onClick={() => handleCopyHash(String(hash), type)}
                     className="ml-3 text-xs border border-green-500 text-green-400 px-2 py-1 hover:bg-green-500 hover:text-black transition-colors"
                   >
-                    {copiedHash === type ? '[✓]' : '[COPY]'}
+                    {copiedHash === type ? '[OK]' : '[COPY]'}
                   </button>
                 </div>
               </div>
@@ -462,7 +462,7 @@ export default function ReportDetail() {
           {report.input_type === 'upload' && !results.metadata.sensitive_data.has_gps && (
             <div className="mb-3 p-2 border border-orange-500/50 bg-orange-500/5">
               <p className="text-orange-400 font-mono text-xs leading-relaxed">
-                📱 <strong>MOBILE UPLOAD NOTICE:</strong> If you uploaded this file from a mobile device (phone/tablet), 
+                <strong>MOBILE UPLOAD NOTICE:</strong> If you uploaded this file from a mobile device (phone/tablet), 
                 location data may have been automatically removed by your operating system's privacy protection 
                 before the file reached this analyzer. This is a security feature that strips GPS coordinates when 
                 sharing images from your photo gallery. To preserve metadata, transfer the original file to a desktop 

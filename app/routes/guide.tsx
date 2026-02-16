@@ -41,7 +41,7 @@ export default function Guide() {
           {/* Introduction */}
           <section>
             <h1 className="text-green-400 font-mono text-2xl mb-4 terminal-glow">
-              📚 USER GUIDE
+              USER GUIDE
             </h1>
             <div className="text-green-300 font-mono text-sm space-y-3 leading-relaxed">
               <p>
@@ -55,7 +55,7 @@ export default function Guide() {
           {/* How to Use */}
           <section className="border-t border-green-500/30 pt-6">
             <h2 className="text-green-400 font-mono text-xl mb-4">
-              🚀 HOW TO USE
+              HOW TO USE
             </h2>
             <div className="space-y-4">
               <div className="bg-green-500/5 border border-green-500/30 p-4">
@@ -84,7 +84,7 @@ export default function Guide() {
           {/* What You Get */}
           <section className="border-t border-green-500/30 pt-6">
             <h2 className="text-green-400 font-mono text-xl mb-4">
-              📊 WHAT YOU GET
+              WHAT YOU GET
             </h2>
             <div className="space-y-3">
               {[
@@ -136,7 +136,7 @@ export default function Guide() {
           {/* Limitations */}
           <section className="border-t border-green-500/30 pt-6">
             <h2 className="text-green-400 font-mono text-xl mb-4">
-              ⚠️ IMPORTANT LIMITATIONS
+              IMPORTANT LIMITATIONS
             </h2>
             <div className="space-y-3">
               <div className="bg-orange-500/10 border border-orange-500/50 p-4">
@@ -145,10 +145,10 @@ export default function Guide() {
                   Platforms like Instagram, Facebook, Twitter, and TikTok automatically strip ALL metadata:
                 </p>
                 <ul className="text-orange-300 font-mono text-xs space-y-1">
-                  <li>❌ No GPS coordinates</li>
-                  <li>❌ No camera information</li>
-                  <li>❌ No original timestamps</li>
-                  <li>❌ No EXIF data</li>
+                  <li>- No GPS coordinates</li>
+                  <li>- No camera information</li>
+                  <li>- No original timestamps</li>
+                  <li>- No EXIF data</li>
                 </ul>
                 <p className="text-orange-400 font-mono text-xs mt-3">
                   You'll only get: file size, dimensions, compression info, and HTTP headers.
@@ -158,7 +158,7 @@ export default function Guide() {
               <div className="bg-orange-500/10 border border-orange-500/50 p-4">
                 <h3 className="text-orange-400 font-mono text-sm font-bold mb-2">MOBILE UPLOADS</h3>
                 <p className="text-orange-300 font-mono text-xs leading-relaxed">
-                  📱 When uploading from mobile devices (iOS/Android), your operating system may strip GPS data 
+                  When uploading from mobile devices (iOS/Android), your operating system may strip GPS data 
                   as a privacy protection BEFORE the file reaches this analyzer. For full metadata, transfer 
                   images to desktop first.
                 </p>
@@ -167,7 +167,7 @@ export default function Guide() {
               <div className="bg-yellow-500/10 border border-yellow-500/50 p-4">
                 <h3 className="text-yellow-400 font-mono text-sm font-bold mb-2">METADATA RELIABILITY</h3>
                 <p className="text-yellow-300 font-mono text-xs leading-relaxed">
-                  ⚠️ EXIF data can be easily edited or removed. Timestamps and GPS coordinates should not be 
+                  WARNING: EXIF data can be easily edited or removed. Timestamps and GPS coordinates should not be 
                   considered definitive proof. Use this tool for investigation, not legal evidence.
                 </p>
               </div>
@@ -177,18 +177,18 @@ export default function Guide() {
           {/* Best Practices */}
           <section className="border-t border-green-500/30 pt-6">
             <h2 className="text-green-400 font-mono text-xl mb-4">
-              💡 BEST PRACTICES
+              BEST PRACTICES
             </h2>
             <div className="bg-green-500/5 border border-green-500/30 p-4">
               <ul className="text-green-300 font-mono text-xs space-y-2">
-                <li><span className="text-green-400">✓</span> Use original, unedited images for best results</li>
-                <li><span className="text-green-400">✓</span> Upload from desktop to preserve all metadata</li>
-                <li><span className="text-green-400">✓</span> Download images directly from source (not screenshots)</li>
-                <li><span className="text-green-400">✓</span> Use direct image URLs, not webpage URLs</li>
-                <li><span className="text-green-400">✓</span> Re-check URLs periodically to monitor changes</li>
-                <li><span className="text-green-400">✓</span> Export reports as JSON for record-keeping</li>
-                <li><span className="text-red-400">✗</span> Don't upload copyrighted images without permission</li>
-                <li><span className="text-red-400">✗</span> Don't expect metadata from social media images</li>
+                <li><span className="text-green-400">[+]</span> Use original, unedited images for best results</li>
+                <li><span className="text-green-400">[+]</span> Upload from desktop to preserve all metadata</li>
+                <li><span className="text-green-400">[+]</span> Download images directly from source (not screenshots)</li>
+                <li><span className="text-green-400">[+]</span> Use direct image URLs, not webpage URLs</li>
+                <li><span className="text-green-400">[+]</span> Re-check URLs periodically to monitor changes</li>
+                <li><span className="text-green-400">[+]</span> Export reports as JSON for record-keeping</li>
+                <li><span className="text-red-400">[-]</span> Don't upload copyrighted images without permission</li>
+                <li><span className="text-red-400">[-]</span> Don't expect metadata from social media images</li>
               </ul>
             </div>
           </section>
@@ -196,7 +196,7 @@ export default function Guide() {
           {/* Privacy & Security */}
           <section className="border-t border-green-500/30 pt-6">
             <h2 className="text-green-400 font-mono text-xl mb-4">
-              🔒 PRIVACY & SECURITY
+              PRIVACY & SECURITY
             </h2>
             <div className="bg-green-500/5 border border-green-500/30 p-4">
               <ul className="text-green-300 font-mono text-xs space-y-2 leading-relaxed">
@@ -214,18 +214,18 @@ export default function Guide() {
           {/* Supported Formats */}
           <section className="border-t border-green-500/30 pt-6">
             <h2 className="text-green-400 font-mono text-xl mb-4">
-              📁 SUPPORTED FORMATS
+              SUPPORTED FORMATS
             </h2>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-green-500/5 border border-green-500/30 p-3">
                 <h3 className="text-green-300 font-mono text-sm font-bold mb-2">IMAGE FORMATS</h3>
                 <ul className="text-green-300 font-mono text-xs space-y-1">
-                  <li>✓ JPEG / JPG</li>
-                  <li>✓ PNG</li>
-                  <li>✓ GIF</li>
-                  <li>✓ WebP</li>
-                  <li>✓ BMP</li>
-                  <li>✓ TIFF</li>
+                  <li>+ JPEG / JPG</li>
+                  <li>+ PNG</li>
+                  <li>+ GIF</li>
+                  <li>+ WebP</li>
+                  <li>+ BMP</li>
+                  <li>+ TIFF</li>
                 </ul>
               </div>
               <div className="bg-green-500/5 border border-green-500/30 p-3">
@@ -244,7 +244,7 @@ export default function Guide() {
           {/* FAQ */}
           <section className="border-t border-green-500/30 pt-6">
             <h2 className="text-green-400 font-mono text-xl mb-4">
-              ❓ FREQUENTLY ASKED QUESTIONS
+              FREQUENTLY ASKED QUESTIONS
             </h2>
             <div className="space-y-3">
               {[
