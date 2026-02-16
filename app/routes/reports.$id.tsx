@@ -456,16 +456,20 @@ export default function ReportDetail() {
             </div>
           )}
 
+          {report.input_type === 'upload' && !results.metadata.sensitive_data.has_gps && (
+            <div className="mb-3 p-2 border border-orange-500/50 bg-orange-500/5">
+              <p className="text-orange-400 font-mono text-xs leading-relaxed">
+                📱 <strong>MOBILE UPLOAD NOTICE:</strong> If you uploaded this file from a mobile device (phone/tablet), 
+                location data may have been automatically removed by your operating system's privacy protection 
+                before the file reached this analyzer. This is a security feature that strips GPS coordinates when 
+                sharing images from your photo gallery. To preserve metadata, transfer the original file to a desktop 
+                computer before uploading.
+              </p>
+            </div>
+          )}
+
           {Object.keys(results.metadata.exif).length > 0 ? (
-            <>
-              {report.input_type === 'upload' && (
-                <div className="mb-3 p-2 border border-blue-500/50 bg-blue-500/5">
-                  <p className="text-blue-400 font-mono text-xs">
-                    ℹ️ <strong>NOTE:</strong> If GPS data shows "N/A" and you uploaded from a mobile device, your OS likely stripped location data before upload for privacy. This is expected behavior on iOS/Android.
-                  </p>
-                </div>
-              )}
-              <div className="space-y-1 max-h-96 overflow-y-auto">
+            <div className="space-y-1 max-h-96 overflow-y-auto">
               {Object.entries(results.metadata.exif).map(([key, value]) => {
                 const isSensitive = results.metadata.sensitive_data.redacted_fields.includes(key);
                 return (
@@ -478,7 +482,6 @@ export default function ReportDetail() {
                 );
               })}
             </div>
-            </>
           ) : (
             <div className="bg-green-500/5 border border-green-500/30 p-3">
               <p className="text-green-600 font-mono text-xs">NO EXIF DATA FOUND</p>
