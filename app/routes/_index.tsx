@@ -124,7 +124,6 @@ export default function Index() {
           formData.append('preview_image', previewUrl);
         }
       }
-        }
       } catch (previewError) {
         console.error('Client-side preview generation failed:', previewError);
         // Continue without preview
