@@ -220,15 +220,23 @@ export async function extractMetadata(buffer: ArrayBuffer): Promise<ImageMetadat
   let exif: any = {};
   let iptc: any = {};
   let xmp: any = {};
+  let gps: any = {};
   
   try {
     // ExifReader.load expects ArrayBuffer
     tags = ExifReader.load(buffer, { expanded: true });
     
-    // Extract EXIF, IPTC, XMP with fallbacks
+    // Extract EXIF, IPTC, XMP, GPS with fallbacks
     exif = tags.exif || tags.Exif || {};
     iptc = tags.iptc || tags.IPTC || {};
     xmp = tags.xmp || tags.XMP || {};
+    gps = tags.gps || tags.GPS || {};
+    
+    // Merge GPS data into exif for unified display
+    // GPS data is shown in EXIF section on most tools
+    if (gps && Object.keys(gps).length > 0) {
+      exif = { ...exif, ...gps };
+    }
     
     // Also check for tags directly on the root object (some formats)
     if (Object.keys(exif).length === 0) {
@@ -236,7 +244,8 @@ export async function extractMetadata(buffer: ArrayBuffer): Promise<ImageMetadat
       const commonFields = [
         'Make', 'Model', 'DateTime', 'DateTimeOriginal', 'CreateDate',
         'ModifyDate', 'Software', 'ExposureTime', 'FNumber', 'ISO',
-        'FocalLength', 'Flash', 'WhiteBalance', 'ColorSpace'
+        'FocalLength', 'Flash', 'WhiteBalance', 'ColorSpace',
+        'GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'GPSPosition'
       ];
       
       for (const field of commonFields) {
@@ -250,7 +259,7 @@ export async function extractMetadata(buffer: ArrayBuffer): Promise<ImageMetadat
     // Continue with empty metadata rather than failing
   }
   
-  const sensitive = checkSensitiveData({ ...tags, ...exif });
+  const sensitive = checkSensitiveData({ ...tags, ...exif, ...gps });
   
   // Color info
   const colorSpace = exif.ColorSpace?.description || exif.ColorSpace?.value || 'Unknown';
@@ -302,49 +311,93 @@ function sanitizeMetadata(obj: any, redactedFields: string[]): Record<string, an
     if (value && typeof value === 'object') {
       if ('description' in value) {
         // Prefer description (human-readable format)
-        result[key] = value.description;
-      } else if ('value' in value) {
-        // Handle the value property
-        const val = value.value;
-        if (Array.isArray(val)) {
-          // For arrays (like GPS coordinates), format them nicely
-          if (val.length === 1) {
-            result[key] = String(val[0]);
-          } else if (val.length > 1) {
-            result[key] = val.join(', ');
-          } else {
-            result[key] = 'N/A';
-          }
-        } else if (val !== null && val !== undefined) {
-          result[key] = String(val);
+        const desc = value.description;
+        // Check if description is valid
+        if (desc && desc !== 'NaN' && desc !== 'null' && desc !== 'undefined' && String(desc).toLowerCase() !== 'nan') {
+          result[key] = String(desc);
+        } else if ('value' in value) {
+          // Fallback to value if description is invalid
+          result[key] = formatValue(value.value);
         } else {
           result[key] = 'N/A';
         }
+      } else if ('value' in value) {
+        result[key] = formatValue(value.value);
       } else if (Array.isArray(value)) {
         // Direct array (not wrapped in object)
-        if (value.length === 1) {
-          result[key] = String(value[0]);
-        } else if (value.length > 1) {
-          result[key] = value.join(', ');
-        } else {
-          result[key] = 'N/A';
-        }
+        result[key] = formatValue(value);
       } else {
         // Other object types - try to stringify
         try {
-          result[key] = JSON.stringify(value);
+          const jsonStr = JSON.stringify(value);
+          result[key] = jsonStr !== '{}' ? jsonStr : 'N/A';
         } catch {
           result[key] = String(value);
         }
       }
     } else if (value !== null && value !== undefined) {
-      result[key] = value;
+      // Check for NaN in primitive values
+      if (typeof value === 'number' && isNaN(value)) {
+        result[key] = 'N/A';
+      } else if (String(value).toLowerCase() === 'nan') {
+        result[key] = 'N/A';
+      } else {
+        result[key] = value;
+      }
     } else {
       result[key] = 'N/A';
     }
   }
   
   return result;
+}
+
+/**
+ * Helper to format values (arrays, numbers, etc.)
+ */
+function formatValue(val: any): string {
+  if (val === null || val === undefined) {
+    return 'N/A';
+  }
+  
+  if (Array.isArray(val)) {
+    // Filter out NaN values from array
+    const validValues = val.filter(v => {
+      if (v === null || v === undefined) {
+        return false;
+      }
+      if (typeof v === 'number' && isNaN(v)) {
+        return false;
+      }
+      if (String(v).toLowerCase() === 'nan') {
+        return false;
+      }
+      return true;
+    });
+    
+    if (validValues.length === 0) {
+      return 'N/A';
+    } else if (validValues.length === 1) {
+      const strValue = String(validValues[0]);
+      return strValue.toLowerCase() === 'nan' ? 'N/A' : strValue;
+    } else {
+      return validValues.map(v => {
+        const strValue = String(v);
+        return strValue.toLowerCase() === 'nan' ? 'N/A' : strValue;
+      }).join(', ');
+    }
+  }
+  
+  if (typeof val === 'number' && isNaN(val)) {
+    return 'N/A';
+  }
+  
+  const strValue = String(val);
+  if (strValue.toLowerCase() === 'nan' || strValue === 'null' || strValue === 'undefined') {
+    return 'N/A';
+  }
+  
+  return strValue;
 }
 
 /**
