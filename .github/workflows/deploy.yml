@@ -36,12 +36,12 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: profile-image-intel-lite
+          projectName: image-stalk
           directory: ./build/client
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deployment summary
         run: |
           echo "✅ Deployment completed successfully!"
-          echo "🚀 Project: profile-image-intel-lite"
+          echo "🚀 Project: image-stalk"
           echo "📦 Build size: $(du -sh ./build/client | cut -f1)"
