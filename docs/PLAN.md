@@ -1,4 +1,4 @@
-# ProfileImageIntel Lite - Development Plan
+# Image Intel - Development Plan
 
 ## 1. Project Overview & Mission
 

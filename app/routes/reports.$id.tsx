@@ -24,7 +24,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   }
   
   return [
-    { title: `Analysis Report ${data.report.id} - ProfileImageIntel Lite` },
+    { title: `Analysis Report ${data.report.id} - Image Intel` },
     { name: 'description', content: 'Image analysis and forensics report' },
   ];
 };

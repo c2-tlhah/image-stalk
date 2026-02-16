@@ -1,4 +1,4 @@
-# Tests for ProfileImageIntel Lite
+# Tests for Image Intel
 
 This directory contains tests for the backend services.
 

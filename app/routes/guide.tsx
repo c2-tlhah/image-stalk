@@ -1,6 +1,6 @@
 /**
  * Guide/Documentation Page
- * Explains usage and capabilities of ProfileImageIntel Lite
+ * Explains usage and capabilities of Image Intel
  */
 
 import { Link } from '@remix-run/react';
@@ -8,8 +8,8 @@ import type { MetaFunction } from '@remix-run/cloudflare';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'User Guide - ProfileImageIntel Lite' },
-    { name: 'description', content: 'Learn how to use ProfileImageIntel Lite to analyze image metadata, EXIF data, and track image changes.' },
+    { title: 'User Guide - Image Intel' },
+    { name: 'description', content: 'Learn how to use Image Intel to analyze image metadata, EXIF data, and track image changes.' },
   ];
 };
 
@@ -45,7 +45,7 @@ export default function Guide() {
             </h1>
             <div className="text-green-300 font-mono text-sm space-y-3 leading-relaxed">
               <p>
-                ProfileImageIntel Lite is a forensic tool for analyzing image metadata, tracking changes, 
+                Image Intel is a forensic tool for analyzing image metadata, tracking changes, 
                 and investigating image origins. It extracts EXIF data, GPS coordinates, camera information, 
                 and more from uploaded images or URLs.
               </p>

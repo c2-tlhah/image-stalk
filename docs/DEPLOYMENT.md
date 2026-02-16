@@ -25,7 +25,7 @@ Database ID: `444bc68b-4b5f-4e9f-8c7e-4a7fd23e72e4`
 ```bash
 git init
 git add .
-git commit -m "Initial commit: ProfileImageIntel Lite"
+git commit -m "Initial commit: Image Intel"
 git branch -M main
 git remote add origin https://github.com/c2-tlhah/image-stalk.git
 git push -u origin main

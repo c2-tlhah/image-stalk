@@ -1,6 +1,6 @@
 # API Usage Examples
 
-This document provides examples of how to use the ProfileImageIntel Lite API programmatically.
+This document provides examples of how to use the Image Intel API programmatically.
 
 ## Base URL
 

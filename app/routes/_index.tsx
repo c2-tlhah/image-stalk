@@ -9,7 +9,7 @@ import type { MetaFunction } from '@remix-run/cloudflare';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'ProfileImageIntel Lite - Image Forensics & Metadata Analysis' },
+    { title: 'Image Intel - Image Forensics & Metadata Analysis' },
     {
       name: 'description',
       content:
@@ -221,11 +221,10 @@ export default function Index() {
             <div className="scale-[0.55] xs:scale-[0.7] sm:scale-100 origin-center">
               <pre className="text-green-400 text-xs sm:text-xs md:text-sm leading-[1.1] mb-4 glitch whitespace-pre inline-block text-left">
 {`
- _____ _____ _____ _____ _____ __    _____        _____ _____ _____ _____ __    
-|  _  | __  |     |   __|     |  |  |   __|___  _|     |   | |_   _|   __|  |   
-|   __|    -|  |  |   __|-   -|  |__|   __|___|_||-   -| | | | | | |   __|  |__ 
-|__|  |__|__|_____|__|  |_____|_____|_____|       |_____|_|___| |_| |_____|_____|
-                                   L I T E
+ _____ _____ _____ _____ _____        _____ _____ _____ _____ __    
+|     |     |  _  |   __|   __|___  _|     |   | |_   _|   __|  |   
+|-   -| | | |     |  |  |   __|___|_||-   -| | | | | | |   __|  |__ 
+|_____|_|_|_|__|__|_____|_____|       |_____|_|___| |_| |_____|_____|
 `}
               </pre>
             </div>

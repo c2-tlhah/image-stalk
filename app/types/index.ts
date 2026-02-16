@@ -1,4 +1,4 @@
-// Core Types for ProfileImageIntel Lite
+// Core Types for Image Intel
 
 export interface TimeSignal {
   iso_value: string | null;
