@@ -80,6 +80,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
       const file = formData.get('file') as File | null;
+      const previewImage = formData.get('preview_image') as string | null;  // Accept preview from client
       
       if (!file) {
         return json(
@@ -108,7 +109,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
       
       const buffer = await file.arrayBuffer();
-      const result = await analyzeImageFromUpload(buffer, file.name);
+      // Pass the client-generated preview image to the analyzer
+      const result = await analyzeImageFromUpload(buffer, file.name, previewImage);
       const reportId = await saveReport(db, result);
       
       return json({
