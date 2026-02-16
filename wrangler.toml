@@ -11,6 +11,11 @@ binding = "DB"
 database_name = "profile-image-intel"
 database_id = "444bc68b-4b5f-4e9f-8c7e-4a7fd23e72e4"
 
+# R2 Object Storage for images
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "image-intel-storage"
+
 [vars]
 MAX_FILE_SIZE_MB = "50"
 REQUEST_TIMEOUT_MS = "10000"

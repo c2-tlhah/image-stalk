@@ -11,6 +11,7 @@ import { fetchSafeUrl } from '~/services/url-fetcher';
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
   const env = context.env as Env;
   const db = env.DB;
+  const r2 = env.IMAGES; // R2 bucket for large images
   const reportId = params.reportId;
   
   if (!reportId) {
@@ -24,7 +25,7 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
       return new Response('Report not found', { status: 404 });
     }
     
-    // Priority 1: Check if we have image_data stored in the database
+    // Priority 1: Check if we have image_data stored directly in database (small images)
     if (report.image_data) {
       const contentType = report.content_type || 'image/jpeg';
       
@@ -38,7 +39,25 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
       });
     }
     
-    // Priority 2: Check if we have a preview_data_url (legacy base64 storage)
+    // Priority 2: Check if we have an R2 key (large images)
+    if (report.r2_key) {
+      const object = await r2.get(report.r2_key);
+      
+      if (object) {
+        const contentType = report.content_type || object.httpMetadata?.contentType || 'image/jpeg';
+        
+        return new Response(object.body, {
+          headers: {
+            'Content-Type': contentType,
+            'Cache-Control': 'public, max-age=31536000, immutable',
+            'Access-Control-Allow-Origin': '*',
+            'Content-Length': object.size.toString(),
+          },
+        });
+      }
+    }
+    
+    // Priority 3: Check if we have a preview_data_url (legacy base64 storage)
     const results = JSON.parse(report.results_json);
     if (results.preview_data_url) {
       // Extract base64 data
@@ -61,7 +80,7 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
       }
     }
     
-    // Priority 3: For URL-based images, fetch and proxy (fallback for old reports)
+    // Priority 4: For URL-based images, fetch and proxy (fallback for old reports)
     const imageUrl = report.final_url || report.source_url;
     if (!imageUrl) {
       return new Response('No image available', { status: 404 });

@@ -2,7 +2,7 @@
  * Database Operations for Cloudflare D1
  */
 
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database, R2Bucket } from '@cloudflare/workers-types';
 import type { AnalysisResult, Report, Event } from '~/types';
 
 /**
@@ -20,14 +20,41 @@ export async function saveReport(
   result: AnalysisResult,
   imageData: ArrayBuffer | null = null,
   contentType: string | null = null,
+  r2Bucket: R2Bucket,
   userId: string | null = null
 ): Promise<string> {
   const reportId = generateId();
   
+  let r2Key: string | null = null;
+  let dbImageData: Uint8Array | null = null;
+  const imageSize = imageData ? imageData.byteLength : null;
+  
+  // Storage strategy:
+  // 1. Small images (< 900KB): Store directly in D1 (image_data)
+  // 2. Large images (>= 900KB): Store in R2 (r2_key)
+  const MAX_DB_SIZE = 900 * 1024; // 900KB to stay safely under 1MB D1 limit
+  
+  if (imageData) {
+    if (imageData.byteLength < MAX_DB_SIZE) {
+      // Small image: Store in database
+      dbImageData = new Uint8Array(imageData);
+      console.log(`Storing image in DB: ${imageData.byteLength} bytes`);
+    } else {
+      // Large image: Store in R2
+      r2Key = `images/${reportId}.${contentType?.split('/')[1] || 'jpg'}`;
+      await r2Bucket.put(r2Key, imageData, {
+        httpMetadata: {
+          contentType: contentType || 'image/jpeg',
+        },
+      });
+      console.log(`Stored image in R2: ${r2Key} (${imageData.byteLength} bytes)`);
+    }
+  }
+  
   await db
     .prepare(
-      `INSERT INTO reports (id, user_id, input_type, source_url, final_url, created_at, sha256, phash, results_json, image_data, content_type, image_size)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO reports (id, user_id, input_type, source_url, final_url, created_at, sha256, phash, results_json, r2_key, image_data, content_type, image_size)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       reportId,
@@ -39,9 +66,10 @@ export async function saveReport(
       result.hashes.sha256,
       result.hashes.phash,
       JSON.stringify(result),
-      imageData ? new Uint8Array(imageData) : null,
+      r2Key,
+      dbImageData,
       contentType,
-      imageData ? imageData.byteLength : null
+      imageSize
     )
     .run();
   

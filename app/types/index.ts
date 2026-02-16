@@ -118,7 +118,8 @@ export interface Report {
   sha256: string;
   phash: string;
   results_json: string; // Stringified AnalysisResult
-  image_data: ArrayBuffer | null; // Stored image binary data
+  r2_key: string | null; // R2 object key for large images
+  image_data: ArrayBuffer | null; // Direct storage for small images (< 900KB)
   content_type: string | null; // Image MIME type
   image_size: number | null; // Image size in bytes
 }
@@ -135,6 +136,7 @@ export interface Event {
 // Cloudflare Environment
 export interface Env {
   DB: D1Database;
+  IMAGES: R2Bucket; // R2 bucket for image storage
   MAX_FILE_SIZE_MB: string;
   REQUEST_TIMEOUT_MS: string;
   RATE_LIMIT_PER_MINUTE: string;

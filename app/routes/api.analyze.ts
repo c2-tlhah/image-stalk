@@ -35,6 +35,7 @@ function checkRateLimit(ip: string, limit: number): boolean {
 export async function action({ request, context }: ActionFunctionArgs) {
   const env = context.env as Env;
   const db = env.DB;
+  const r2 = env.IMAGES; // R2 bucket for large images (optional)
   
   // Get client IP for rate limiting
   const clientIP = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || 'unknown';
@@ -71,7 +72,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         db, 
         analysisResult.result, 
         analysisResult.imageBuffer, 
-        analysisResult.contentType
+        analysisResult.contentType,
+        r2
       );
       
       return json({
@@ -141,7 +143,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         db, 
         analysisResult.result, 
         analysisResult.imageBuffer, 
-        analysisResult.contentType
+        analysisResult.contentType,
+        r2
       );
       
       return json({
