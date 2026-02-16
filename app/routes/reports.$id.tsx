@@ -80,34 +80,47 @@ export default function ReportDetail() {
   
   // Get the best "last updated" date from time signals
   const getLastUpdatedDate = () => {
-    const signals = results.time_signals;
-    // Prioritize HTTP Last-Modified for URLs, then EXIF dates
-    if (signals.server_last_modified?.iso_value) {
+    // Note: signals is actually results.time_signals inside the component logic above,
+    // but here we are inside the component body, accessing 'results' from useLoaderData which is AnalysisResult
+    // Wait, the previous code was correct: const signals = results.time_signals;
+    // but the issue is PRIORITY.
+    // For UPLOADS, we want EXIF Capture Time to be the primary source of truth for "Last Updated" 
+    // (or arguably "Captured At"), NOT the time we analyzed it.
+    // For URLs, Last-Modified header is good.
+    
+    // Check if we have EXIF capture time - prioritize this for uploads OR if available
+    if (results.time_signals?.exif_capture_time?.iso_value) {
       return {
-        date: formatISODate(signals.server_last_modified.iso_value),
-        source: 'HTTP Last-Modified',
-        confidence: signals.server_last_modified.confidence_score
-      };
-    }
-    if (signals.exif_capture_time?.iso_value) {
-      return {
-        date: formatISODate(signals.exif_capture_time.iso_value),
+        date: formatISODate(results.time_signals.exif_capture_time.iso_value),
         source: 'EXIF Capture Time',
-        confidence: signals.exif_capture_time.confidence_score
+        confidence: results.time_signals.exif_capture_time.confidence_score
       };
     }
-    if (signals.exif_modify_time?.iso_value) {
+    
+    // Check EXIF modify time next
+    if (results.time_signals?.exif_modify_time?.iso_value) {
       return {
-        date: formatISODate(signals.exif_modify_time.iso_value),
+        date: formatISODate(results.time_signals.exif_modify_time.iso_value),
         source: 'EXIF Modify Time',
-        confidence: signals.exif_modify_time.confidence_score
+        confidence: results.time_signals.exif_modify_time.confidence_score
       };
     }
-    if (signals.first_seen_by_system?.iso_value) {
+
+    // Then check HTTP Last-Modified (only relevant for URLs usually)
+    if (results.time_signals?.server_last_modified?.iso_value) {
       return {
-        date: formatISODate(signals.first_seen_by_system.iso_value),
+        date: formatISODate(results.time_signals.server_last_modified.iso_value),
+        source: 'HTTP Last-Modified',
+        confidence: results.time_signals.server_last_modified.confidence_score
+      };
+    }
+
+    // Fallback to when system first analyzed it
+    if (results.time_signals?.first_seen_by_system?.iso_value) {
+      return {
+        date: formatISODate(results.time_signals.first_seen_by_system.iso_value),
         source: 'System Analysis Time',
-        confidence: signals.first_seen_by_system.confidence_score
+        confidence: results.time_signals.first_seen_by_system.confidence_score
       };
     }
     return { date: 'No timestamp available', source: 'N/A', confidence: 0 };
