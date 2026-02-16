@@ -80,20 +80,12 @@ export default function ReportDetail() {
   
   // Get the best "last updated" date from time signals
   const getLastUpdatedDate = () => {
-    // Note: signals is actually results.time_signals inside the component logic above,
-    // but here we are inside the component body, accessing 'results' from useLoaderData which is AnalysisResult
-    // Wait, the previous code was correct: const signals = results.time_signals;
-    // but the issue is PRIORITY.
-    // For UPLOADS, we want EXIF Capture Time to be the primary source of truth for "Last Updated" 
-    // (or arguably "Captured At"), NOT the time we analyzed it.
-    // For URLs, Last-Modified header is good.
-    
     // Check if we have EXIF capture time - prioritize this for uploads OR if available
     if (results.time_signals?.exif_capture_time?.iso_value) {
       return {
         date: formatISODate(results.time_signals.exif_capture_time.iso_value),
         source: 'EXIF Capture Time',
-        confidence: results.time_signals.exif_capture_time.confidence_score
+        confidence: 100
       };
     }
     
@@ -102,7 +94,7 @@ export default function ReportDetail() {
       return {
         date: formatISODate(results.time_signals.exif_modify_time.iso_value),
         source: 'EXIF Modify Time',
-        confidence: results.time_signals.exif_modify_time.confidence_score
+        confidence: 100
       };
     }
 
@@ -111,7 +103,17 @@ export default function ReportDetail() {
       return {
         date: formatISODate(results.time_signals.server_last_modified.iso_value),
         source: 'HTTP Last-Modified',
-        confidence: results.time_signals.server_last_modified.confidence_score
+        confidence: 100
+      };
+    }
+
+    // Check Client Last Modified (for uploads)
+    // Note: TypeScript might not know about client_last_modified yet if types aren't fully propagated in IDE, but runtime works
+    if ((results.time_signals as any).client_last_modified?.iso_value) {
+      return {
+        date: formatISODate((results.time_signals as any).client_last_modified.iso_value),
+        source: 'File Last Modified',
+        confidence: 100
       };
     }
 
@@ -120,7 +122,7 @@ export default function ReportDetail() {
       return {
         date: formatISODate(results.time_signals.first_seen_by_system.iso_value),
         source: 'System Analysis Time',
-        confidence: results.time_signals.first_seen_by_system.confidence_score
+        confidence: 100
       };
     }
     return { date: 'No timestamp available', source: 'N/A', confidence: 0 };
@@ -158,22 +160,22 @@ export default function ReportDetail() {
       </div>
       
       {/* Main Terminal */}
-      <div className="max-w-7xl mx-auto terminal-border bg-black p-6">
+      <div className="max-w-7xl mx-auto terminal-border bg-black p-4 sm:p-6">
         {/* Terminal Header */}
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-green-500">
-          <div className="flex items-center space-x-3">
-            <div className="flex space-x-2">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-green-500 overflow-hidden">
+          <div className="flex items-center space-x-3 shrink-0">
+            <div className="flex space-x-2 shrink-0">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
               <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
               <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
             </div>
-            <span className="text-green-400 font-mono text-sm">
+            <span className="text-green-400 font-mono text-xs sm:text-sm truncate">
               [ANALYSIS_REPORT_{report.id}]
             </span>
           </div>
           <button
             onClick={handleDownloadReport}
-            className="terminal-button text-xs py-1 px-3"
+            className="terminal-button text-[10px] sm:text-xs py-1 px-2 sm:px-3 shrink-0 ml-2"
           >
             [EXPORT_JSON]
           </button>
@@ -437,10 +439,10 @@ export default function ReportDetail() {
             <div className="text-green-400 font-mono text-sm terminal-glow">
               [ EXIF_METADATA ]
             </div>
-            {(results.metadata.sensitive_data.has_gps || results.metadata.sensitive_data.has_serial) && (
+            {results.metadata.sensitive_data.redacted_fields.length > 0 && (
               <button
                 onClick={() => setShowSensitive(!showSensitive)}
-                className="terminal-button text-xs py-1 px-3"
+                className={`terminal-button text-xs py-1 px-3 ${showSensitive ? 'bg-red-500/20 text-red-400 border-red-500' : ''}`}
               >
                 {showSensitive ? '[HIDE_SENSITIVE]' : '[SHOW_SENSITIVE]'}
               </button>
@@ -457,14 +459,17 @@ export default function ReportDetail() {
 
           {Object.keys(results.metadata.exif).length > 0 ? (
             <div className="space-y-1 max-h-96 overflow-y-auto">
-              {Object.entries(results.metadata.exif).map(([key, value]) => (
-                <div key={key} className="bg-green-500/5 border border-green-500/30 p-2 font-mono text-xs">
-                  <span className="text-green-400">{key}:</span>{' '}
-                  <span className="text-green-300 break-all">
-                    {!showSensitive && value === '[REDACTED]' ? '••••••••' : String(value)}
-                  </span>
-                </div>
-              ))}
+              {Object.entries(results.metadata.exif).map(([key, value]) => {
+                const isSensitive = results.metadata.sensitive_data.redacted_fields.includes(key);
+                return (
+                  <div key={key} className={`border p-2 font-mono text-xs break-all ${isSensitive ? 'border-yellow-500/30 bg-yellow-500/5' : 'border-green-500/30 bg-green-500/5'}`}>
+                    <span className={isSensitive ? 'text-yellow-400' : 'text-green-400'}>{key}:</span>{' '}
+                    <span className={isSensitive ? 'text-yellow-300' : 'text-green-300'}>
+                      {isSensitive && !showSensitive ? '[REDACTED]' : String(value)}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="bg-green-500/5 border border-green-500/30 p-3">

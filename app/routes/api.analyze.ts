@@ -81,6 +81,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const formData = await request.formData();
       const file = formData.get('file') as File | null;
       const previewImage = formData.get('preview_image') as string | null;  // Accept preview from client
+      const lastModifiedStr = formData.get('last_modified') as string | null;
+      const clientLastModified = lastModifiedStr ? parseInt(lastModifiedStr, 10) : null;
       
       if (!file) {
         return json(
@@ -110,7 +112,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       
       const buffer = await file.arrayBuffer();
       // Pass the client-generated preview image to the analyzer
-      const result = await analyzeImageFromUpload(buffer, file.name, previewImage);
+      const result = await analyzeImageFromUpload(buffer, file.name, previewImage, clientLastModified);
       const reportId = await saveReport(db, result);
       
       return json({

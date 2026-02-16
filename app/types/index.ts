@@ -104,6 +104,7 @@ export interface AnalysisResult {
     server_last_modified: TimeSignal;
     server_date: TimeSignal;
     first_seen_by_system: TimeSignal;
+    client_last_modified?: TimeSignal; // New field for uploaded files
   };
 }
 

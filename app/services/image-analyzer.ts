@@ -26,6 +26,10 @@ export async function analyzeImageFromUrl(
 ): Promise<AnalysisResult> {
   // Try to resolve profile image first (e.g. from Instagram/Twitter profile URL)
   let targetUrl = url;
+  
+  // Simple check if it looks like a profile/page URL
+  const isDirectImage = url.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i);
+
   try {
     const resolvedUrl = await resolveProfileImageUrl(url);
     if (resolvedUrl) {
@@ -40,6 +44,10 @@ export async function analyzeImageFromUrl(
   const fetchResult = await fetchSafeUrl(targetUrl, options);
   
   if (!fetchResult.success || !fetchResult.buffer) {
+    // Improve error message for profile URLs that failed resolution
+    if (!isDirectImage && fetchResult.error?.includes('content type')) {
+        throw new Error('Analysis Failed: Could not extract a public profile image due to privacy settings or anti-scraping blocks. Try using the direct image URL (right-click image -> "Copy Image Link").');
+    }
     throw new Error(fetchResult.error || 'Failed to fetch image');
   }
   
@@ -71,7 +79,8 @@ export async function analyzeImageFromUrl(
 export async function analyzeImageFromUpload(
   buffer: ArrayBuffer,
   filename?: string,
-  clientPreviewDataUrl?: string | null
+  clientPreviewDataUrl?: string | null,
+  clientLastModified?: number | null
 ): Promise<AnalysisResult> {
   // Use client-provided preview if available, otherwise generate one server-side (only for small files)
   let previewDataUrl: string | null = clientPreviewDataUrl || null;
@@ -127,7 +136,7 @@ export async function analyzeImageFromUpload(
     }
   }
   
-  return await analyzeImageBuffer(buffer, 'upload', null, null, undefined, previewDataUrl);
+  return await analyzeImageBuffer(buffer, 'upload', null, null, undefined, previewDataUrl, clientLastModified);
 }
 
 /**
@@ -139,7 +148,8 @@ async function analyzeImageBuffer(
   sourceUrl: string | null,
   finalUrl: string | null,
   httpHeaders?: HttpHeaders,
-  previewDataUrl?: string | null
+  previewDataUrl?: string | null,
+  clientLastModified?: number | null
 ): Promise<AnalysisResult> {
   // Run all analyses in parallel
   const [metadata, hashes, contentMetrics] = await Promise.all([
@@ -149,7 +159,7 @@ async function analyzeImageBuffer(
   ]);
   
   // Extract time signals
-  const timeSignals = extractTimeSignals(metadata, httpHeaders?.headers);
+  const timeSignals = extractTimeSignals(metadata, httpHeaders?.headers, clientLastModified);
   
   const result: AnalysisResult = {
     id: generateId(),

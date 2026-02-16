@@ -67,6 +67,7 @@ export default function Index() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('last_modified', String(file.lastModified));
       
       // Generate client-side preview for the file if possible
       try {
@@ -188,7 +189,8 @@ export default function Index() {
       <div className="max-w-4xl mx-auto">
         {/* ASCII Art Header */}
         <div className="text-center mb-8 terminal-glow">
-          <pre className="text-green-400 text-xs sm:text-sm leading-tight mb-4 glitch">
+          <div className="overflow-x-auto pb-2">
+            <pre className="text-green-400 text-[0.6rem] sm:text-xs md:text-sm leading-tight mb-4 glitch inline-block text-left sm:text-center whitespace-pre">
 {`
  _____ _____ _____ _____ _____ __    _____        _____ _____ _____ _____ __    
 |  _  | __  |     |   __|     |  |  |   __|___  _|     |   | |_   _|   __|  |   
@@ -196,21 +198,22 @@ export default function Index() {
 |__|  |__|__|_____|__|  |_____|_____|_____|       |_____|_|___| |_| |_____|_____|
                                    L I T E
 `}
-          </pre>
-          <p className="text-green-300 text-sm tracking-wider">
+            </pre>
+          </div>
+          <p className="text-green-300 text-xs sm:text-sm tracking-wider px-2 break-words">
             &gt; IMAGE FORENSICS AND METADATA EXTRACTION SYSTEM
           </p>
         </div>
 
         {/* Main Terminal Window */}
-        <div className="terminal-border bg-black p-6 mb-8">
-          <div className="flex items-center mb-4 pb-2 border-b border-green-500">
-            <div className="flex space-x-2">
+        <div className="terminal-border bg-black p-4 sm:p-6 mb-8">
+          <div className="flex items-center mb-4 pb-2 border-b border-green-500 overflow-hidden">
+            <div className="flex space-x-2 shrink-0">
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
             </div>
-            <div className="ml-4 text-green-400 text-sm font-mono">
+            <div className="ml-4 text-green-400 text-xs sm:text-sm font-mono truncate">
               [FORENSICS-TERMINAL v1.0]
             </div>
           </div>
@@ -251,14 +254,14 @@ export default function Index() {
             <form onSubmit={handleUrlSubmit} className="space-y-4">
               <div>
                 <label htmlFor="url-input" className="block text-sm font-mono text-green-400 mb-2">
-                  &gt; ENTER TARGET IMAGE URL OR PROFILE LINK:
+                  &gt; ENTER TARGET IMAGE URL:
                 </label>
                 <input
                   type="url"
                   id="url-input"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg OR https://instagram.com/user"
+                  placeholder="https://example.com/image.jpg"
                   className="w-full terminal-input font-mono"
                   required
                   disabled={loading}

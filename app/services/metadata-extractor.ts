@@ -162,9 +162,22 @@ function checkSensitiveData(tags: any): {
   let has_serial = false;
   
   // Check for GPS
-  if (tags.GPSLatitude || tags.GPSLongitude || tags.GPSPosition) {
-    has_gps = true;
-    redacted.push('GPS coordinates');
+  const gpsFields = [
+    'GPSLatitude', 'GPSLongitude', 'GPSPosition', 
+    'GPSAltitude', 'GPSImgDirection', 'GPSDestLatitude', 
+    'GPSDestLongitude', 'GPSDateStamp', 'GPSTimeStamp'
+  ];
+  
+  for (const field of gpsFields) {
+    if (tags[field]) {
+      has_gps = true;
+      redacted.push(field);
+    }
+  }
+
+  if (has_gps) {
+      // Add generic marker to explain why
+      // redacted.push('GPS coordinates'); 
   }
   
   // Check for serial numbers
@@ -263,9 +276,9 @@ export async function extractMetadata(buffer: ArrayBuffer): Promise<ImageMetadat
       has_alpha: fileInfo.type === 'PNG' || fileInfo.type === 'WebP',
       icc_profile: tags.icc ? 'Present' : null,
     },
-    exif: sanitizeMetadata(exif, sensitive.redacted_fields),
-    iptc: sanitizeMetadata(iptc, sensitive.redacted_fields),
-    xmp: sanitizeMetadata(xmp, sensitive.redacted_fields),
+    exif: sanitizeMetadata(exif, []), // We now send full data to frontend, letting UI handle hiding
+    iptc: sanitizeMetadata(iptc, []),
+    xmp: sanitizeMetadata(xmp, []),
     sensitive_data: sensitive,
   };
   
@@ -279,11 +292,11 @@ function sanitizeMetadata(obj: any, redactedFields: string[]): Record<string, an
   const result: Record<string, any> = {};
   
   for (const [key, value] of Object.entries(obj)) {
-    // Skip if in redacted list
-    if (redactedFields.includes(key)) {
-      result[key] = '[REDACTED]';
-      continue;
-    }
+    // Skip if in redacted list (Disabled for now to allow client-side toggling)
+    // if (redactedFields.includes(key)) {
+    //   result[key] = '[REDACTED]';
+    //   continue;
+    // }
     
     // Convert ExifReader objects to simple values
     if (value && typeof value === 'object') {
@@ -384,13 +397,15 @@ function exifDateToISO(exifDate: any): string | null {
  */
 export function extractTimeSignals(
   metadata: ImageMetadata,
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
+  clientLastModified?: number | null
 ): {
   exif_capture_time: TimeSignal;
   exif_modify_time: TimeSignal;
   server_last_modified: TimeSignal;
   server_date: TimeSignal;
   first_seen_by_system: TimeSignal;
+  client_last_modified: TimeSignal;
 } {
   // Try multiple EXIF date fields for capture time
   const captureDate = exifDateToISO(
@@ -430,6 +445,12 @@ export function extractTimeSignals(
       'HTTP Date header',
       'Server response time',
       headers?.date ? 80 : 0
+    ),
+    client_last_modified: createTimeSignal(
+      clientLastModified ? new Date(clientLastModified).toISOString() : null,
+      'Client Modified Time',
+      'File last modified time on user device',
+      clientLastModified ? 90 : 0
     ),
     first_seen_by_system: createTimeSignal(
       new Date().toISOString(),
