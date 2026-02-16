@@ -41,21 +41,50 @@ export function formatDateTime(timestamp: number): string {
 }
 
 /**
- * Formats ISO date string to readable format
+ * Formats ISO date string to readable format in user's local timezone
+ * EXIF dates are stored as local time (without timezone) and displayed as-is
+ * System dates are also stored in local format for consistency
  */
 export function formatISODate(isoString: string | null): string {
   if (!isoString) return 'N/A';
   
   try {
+    // Parse the ISO string manually to display in user's timezone
+    // Format: "2024-02-16T00:30:00" (no Z = local time)
+    const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+    
+    if (match) {
+      const [_, year, month, day, hour, minute, second] = match;
+      
+      // Create a date display - treat as user's local time
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthName = monthNames[parseInt(month) - 1];
+      
+      // Convert to 12-hour format
+      const hourNum = parseInt(hour);
+      const hour12 = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
+      const ampm = hourNum >= 12 ? 'PM' : 'AM';
+      
+      return `${monthName} ${parseInt(day)}, ${year}, ${hour12.toString().padStart(2, '0')}:${minute}:${second} ${ampm}`;
+    }
+    
+    // Fallback: if it has a Z (UTC), convert to user's timezone
     const date = new Date(isoString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
+    
+    if (!isNaN(date.getTime())) {
+      // Use toLocaleString which automatically converts to user's timezone
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+    }
+    
+    return isoString;
   } catch {
     return isoString;
   }

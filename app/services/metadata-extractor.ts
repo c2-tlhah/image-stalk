@@ -401,7 +401,21 @@ function formatValue(val: any): string {
 }
 
 /**
- * Converts EXIF date format to ISO string
+ * Helper to convert Date to local ISO string (without Z suffix)
+ * This preserves the local time instead of converting to UTC
+ */
+function dateToLocalISO(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Converts EXIF date format to ISO string (preserving local time, no UTC conversion)
  */
 function exifDateToISO(exifDate: any): string | null {
   if (!exifDate) return null;
@@ -441,33 +455,30 @@ function exifDateToISO(exifDate: any): string | null {
     // "YYYY:MM:DD HH:MM:SS+00:00"
     // "YYYY-MM-DD HH:MM:SS" (non-standard but possible)
     
-    // 1. Try "YYYY:MM:DD" format first
-    // Replace colons in date part with dashes, and space with T
-    // regex: start with 4 digits, colon, 2 digits, colon, 2 digits
+    // IMPORTANT: EXIF dates are in LOCAL TIME (camera time), not UTC
+    // We must NOT convert to UTC - just reformat as ISO while preserving the time
+    
+    // 1. Try "YYYY:MM:DD HH:MM:SS" format first
     if (/^\d{4}:\d{2}:\d{2}/.test(dateStr)) {
-       // "2023:10:27 11:22:33" -> "2023-10-27T11:22:33"
-       // The regex /:(\d{2}):(\d{2})/g might match time parts too if not careful
-       // Safer: split by space
        const parts = dateStr.split(' ');
        if (parts.length >= 2) {
-         const datePart = parts[0].replace(/:/g, '-');
-         const timePart = parts[1];
-         // Reassemble as ISO-like
-         const isoLike = `${datePart}T${timePart}`;
-         const date = new Date(isoLike);
-         if (!isNaN(date.getTime())) return date.toISOString();
+         const datePart = parts[0].replace(/:/g, '-'); // "2024:02:16" -> "2024-02-16"
+         const timePart = parts[1].split('+')[0].split('-')[0]; // Remove timezone if present
+         // Return as local time ISO format (no Z, no timezone offset)
+         return `${datePart}T${timePart}`;
        } else {
          // Maybe just date? "2023:10:27"
          const datePart = dateStr.replace(/:/g, '-');
-         const date = new Date(datePart);
-         if (!isNaN(date.getTime())) return date.toISOString();
+         return `${datePart}T00:00:00`;
        }
     }
     
-    // 2. Try standard Date parsing for other formats
+    // 2. Try parsing with Date if it's another format
+    // But we need to avoid UTC conversion
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
-      return date.toISOString();
+      // Extract local components to avoid UTC conversion
+      return dateToLocalISO(date);
     }
       
   } catch (error) {
@@ -534,13 +545,13 @@ export function extractTimeSignals(
       headers?.date ? 80 : 0
     ),
     client_last_modified: createTimeSignal(
-      clientLastModified ? new Date(clientLastModified).toISOString() : null,
+      clientLastModified ? dateToLocalISO(new Date(clientLastModified)) : null,
       'Client Modified Time',
       'File last modified time on user device',
       clientLastModified ? 90 : 0
     ),
     first_seen_by_system: createTimeSignal(
-      new Date().toISOString(),
+      dateToLocalISO(new Date()),
       'System analysis time',
       'First time analyzed by our system',
       100
