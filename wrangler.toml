@@ -11,7 +11,7 @@ binding = "DB"
 database_name = "profile-image-intel"
 database_id = "444bc68b-4b5f-4e9f-8c7e-4a7fd23e72e4"
 
-# R2 Object Storage for images
+# R2 Object Storage for image
 [[r2_buckets]]
 binding = "IMAGES"
 bucket_name = "image-intel-storage"
