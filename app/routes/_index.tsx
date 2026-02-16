@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { useNavigate } from '@remix-run/react';
+import { useNavigate, Link } from '@remix-run/react';
 import type { MetaFunction } from '@remix-run/cloudflare';
 
 export const meta: MetaFunction = () => {
@@ -386,7 +386,14 @@ export default function Index() {
         <div className="text-center text-green-600 font-mono text-xs space-y-2">
           <p>&gt; ZERO-COST TIER | NO AUTHENTICATION REQUIRED</p>
           <p>&gt; IMAGES NOT STORED | ONLY METADATA RETAINED</p>
-          <div className="mt-4 flex items-center justify-center gap-4">
+          <div className="mt-4 flex items-center justify-center gap-4 flex-wrap">
+            <Link
+              to="/guide"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-green-500 text-green-400 hover:bg-green-500/10 hover:text-green-300 transition-colors"
+            >
+              <span>📚</span>
+              <span>[USER GUIDE]</span>
+            </Link>
             <a
               href="https://github.com/c2-tlhah/image-stalk"
               target="_blank"

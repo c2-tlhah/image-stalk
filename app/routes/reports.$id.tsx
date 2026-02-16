@@ -152,9 +152,12 @@ export default function ReportDetail() {
   return (
     <div className="min-h-screen scanline bg-black py-6 px-4">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-4">
+      <div className="max-w-7xl mx-auto mb-4 flex items-center justify-between">
         <Link to="/" className="text-green-400 hover:text-green-300 font-mono text-sm">
           &lt; RETURN_TO_HOME
+        </Link>
+        <Link to="/guide" className="text-green-400 hover:text-green-300 font-mono text-xs border border-green-500/50 px-3 py-1">
+          📚 [GUIDE]
         </Link>
       </div>
       
